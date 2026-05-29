@@ -15,19 +15,15 @@
             flex-direction: column;
             overflow: hidden;
         }
-        
-        /* WARNA UTAMA LATAR BELAKANG IFRAME */
         .app-container {
             flex-grow: 1;
             width: 100%;
             height: calc(100% - 140px);
             position: relative;
         }
-        
-        /* 🛠️ PERBAIKAN: MENGUBAH BACKGROUND LOGO MENJADI HITAM PEKAT */
         .navbar-logo {
-            background-color: #000000; /* Mengubah background area logo dari putih (#ffffff) menjadi hitam pekat (#000000) */
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); /* Membuat bayangan sedikit lebih tebal agar kontras */
+            background-color: #000000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             padding: 10px 15px; 
             display: flex;
             align-items: center;
@@ -35,16 +31,14 @@
             z-index: 100;
             height: 140px; 
             box-sizing: border-box;
-            border-bottom: 4px solid #dc2626; /* Garis merah pembatas tetap dipertahankan agar estetis */
+            border-bottom: 4px solid #dc2626;
         }
-        
         .navbar-logo img {
             height: 110px; 
             width: auto;
             max-width: 90%; 
             object-fit: contain;
         }
-
         iframe {
             width: 100%;
             height: 100%;
@@ -60,7 +54,7 @@
     </div>
 
     <div class="app-container">
-        <iframe src="https://script.google.com/macros/s/AKfycbxONH3k6KSfAbeRQWc_hTNewsneDb2LAS47ZrGC56S4pB_1wrEKzpEBx-oLkp18_jBwbQ/exec"></iframe>
+        <iframe src="https://script.google.com/macros/s/AKfycbxONH3k6KSfAbeRQWc_hTNewsneDb2LAS47ZrGC56S4pB_1wrEKzpEBx-oLkp18_jBwbQ/exec" allow="camera; geolocation"></iframe>
     </div>
 
 </body>
