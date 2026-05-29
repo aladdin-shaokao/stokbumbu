@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Aplikasi Stok Bumbu</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        /* BARIS ATAS KHUSUS LOGO PERUSAHAAN */
+        .navbar-logo {
+            background-color: #ffffff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            height: 65px;
+            box-sizing: border-box;
+        }
+        .navbar-logo img {
+            height: 45px; /* Tinggi proporsional untuk logo di HP petugas */
+            width: auto;
+            max-width: 250px;
+            object-fit: contain;
+        }
+        /* CONTAINER UNTUK MENAMPILKAN FORM APPS SCRIPT */
+        .app-container {
+            flex-grow: 1;
+            width: 100%;
+            height: calc(100% - 65px);
+            position: relative;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="navbar-logo">
+        <img src="logo.png" alt="Logo Perusahaan" onerror="this.src='https://placehold.co/250x50?text=STOK+BUMBU+DIGITAL'">
+    </div>
+
+    <div class="app-container">
+        <iframe src="https://script.google.com/macros/s/AKfycbxONH3k6KSfAbeRQWc_hTNewsneDb2LAS47ZrGC56S4pB_1wrEKzpEBx-oLkp18_jBwbQ/exec"></iframe>
+    </div>
+
+</body>
+</html>
