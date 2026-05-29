@@ -1,65 +1,146 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Aplikasi Stok Bumbu - Aladdin Shaokao</title>
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            font-family: Arial, sans-serif;
-            background-color: #f4f6f9;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        
-        .app-container {
-            flex-grow: 1;
-            width: 100%;
-            height: calc(100% - 140px);
-            position: relative;
-        }
-        
-        .navbar-logo {
-            background-color: #000000;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            padding: 10px 15px; 
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            height: 140px; 
-            box-sizing: border-box;
-            border-bottom: 4px solid #dc2626;
-        }
-        
-        .navbar-logo img {
-            height: 110px; 
-            width: auto;
-            max-width: 90%; 
-            object-fit: contain;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aladdin Shaokao Inventory System</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-        }
-    </style>
+  <style>
+    body {
+      background-color: #0b0f17;
+      font-family: Arial, sans-serif;
+      color: #f3f4f6;
+    }
+    .card-custom {
+      max-width: 440px;
+      margin: 40px auto;
+      border-radius: 16px;
+      background-color: #1f2937;
+      border: 1px solid #374151;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+      overflow: hidden;
+    }
+    .card-header-brand {
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+      padding: 28px 24px;
+      text-align: center;
+      border-bottom: 1px solid #374151;
+    }
+    .brand-logo {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+    /* Warna Kuning Emas khas Logo Aladdin */
+    .text-aladdin-gold {
+      color: #dfb15b !important;
+    }
+    .form-label-custom {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-uppercase: true;
+      margin-bottom: 6px;
+    }
+    .form-control-dark {
+      background-color: #111827;
+      border: 1px solid #4b5563;
+      color: #dfb15b !important; /* Warna teks ketikan menjadi kuning */
+      font-weight: 600;
+    }
+    .form-control-dark:focus {
+      background-color: #111827;
+      border-color: #dfb15b;
+      color: #dfb15b;
+      box-shadow: 0 0 0 0.25rem rgba(223, 177, 91, 0.2);
+    }
+    /* Mengubah warna teks placeholder (petunjuk cetakan dalam kotak) menjadi kuning redup */
+    .form-control-dark::placeholder {
+      color: rgba(223, 177, 91, 0.6) !important;
+      font-weight: 400;
+    }
+    .btn-danger-custom {
+      background-color: #dc2626;
+      color: white;
+      border: none;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      transition: all 0.2s ease;
+    }
+    .btn-danger-custom:hover {
+      background-color: #b91c1c;
+      color: white;
+      transform: translateY(-1px);
+    }
+    .btn-danger-custom:active {
+      transform: translateY(0);
+    }
+    .logo-container {
+      text-align: center;
+      margin-top: 30px;
+    }
+    .logo-img {
+      max-height: 90px;
+      width: auto;
+    }
+  </style>
 </head>
 <body>
 
-    <div class="navbar-logo">
-        <img src="logo.png" alt="Aladdin Shaokao Logo" onerror="this.src='https://placehold.co/350x110/000000/ffffff?text=ALADDIN+SHAOKAO'">
+  <div class="container px-3">
+    
+    <div class="logo-container">
+      <img src="aladdin-logo.png" alt="Aladdin Logo" class="logo-img" onerror="this.style.display='none'">
     </div>
 
-    <div class="app-container">
-        <iframe src="https://script.google.com/macros/s/AKfycbxONH3k6KSfAbeRQWc_hTNewsneDb2LAS47ZrGC56S4pB_1wrEKzpEBx-oLkp18_jBwbQ/exec" allow="camera; geolocation"></iframe>
+    <div class="card card-custom">
+      <div class="card-header-brand">
+        <div class="brand-logo">STOK BUMBU</div>
+        <div class="small text-white-50 text-uppercase tracking-wider" style="font-size: 11px;">Aladdin Shaokao Inventory System</div>
+      </div>
+      
+      <div class="card-body p-4">
+        <form onsubmit="handleFormSubmit(event)">
+          
+          <div class="mb-3">
+            <label class="form-label form-label-custom text-aladdin-gold">USERNAME PETUGAS</label>
+            <input type="text" id="username" class="form-control form-control-dark py-2.5" placeholder="Masukkan nama pengguna" autocomplete="username" required>
+          </div>
+          
+          <div class="mb-4">
+            <label class="form-label form-label-custom text-aladdin-gold">PASSWORD</label>
+            <input type="password" id="password" class="form-control form-control-dark py-2.5" placeholder="Masukkan kata sandi" autocomplete="current-password" required>
+          </div>
+          
+          <button type="submit" class="btn btn-danger-custom w-100 py-2.5 text-uppercase">Masuk Sistem</button>
+        </form>
+      </div>
     </div>
 
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      
+      // Simulasi loading integrasi data
+      Swal.fire({
+        title: 'Memeriksa Data...',
+        text: 'Menghubungkan ke pusat data Aladdin Shaokao',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+      
+      // Bagian ini nanti menyambung ke fungsi backend Apps Script Anda
+      setTimeout(() => {
+        Swal.close();
+      }, 2000);
+    }
+  </script>
 </body>
 </html>
