@@ -13,9 +13,20 @@
       font-family: Arial, sans-serif;
       color: #f3f4f6;
     }
+    .logo-container {
+      text-align: center;
+      margin-top: 25px;
+      margin-bottom: -15px;
+    }
+    /* UKURAN LOGO DIZOOM BIAR MANTAP DAN BESAR */
+    .logo-img {
+      max-height: 180px; 
+      width: auto;
+      object-fit: contain;
+    }
     .card-custom {
       max-width: 440px;
-      margin: 40px auto;
+      margin: 30px auto;
       border-radius: 16px;
       background-color: #1f2937;
       border: 1px solid #374151;
@@ -24,7 +35,7 @@
     }
     .card-header-brand {
       background: linear-gradient(135deg, #dc2626, #991b1b);
-      padding: 28px 24px;
+      padding: 24px;
       text-align: center;
       border-bottom: 1px solid #374151;
     }
@@ -35,7 +46,6 @@
       color: #ffffff;
       margin-bottom: 4px;
     }
-    /* Warna Kuning Emas khas Logo Aladdin */
     .text-aladdin-gold {
       color: #dfb15b !important;
     }
@@ -43,13 +53,12 @@
       font-size: 12px;
       font-weight: 700;
       letter-spacing: 1px;
-      text-uppercase: true;
       margin-bottom: 6px;
     }
     .form-control-dark {
       background-color: #111827;
       border: 1px solid #4b5563;
-      color: #dfb15b !important; /* Warna teks ketikan menjadi kuning */
+      color: #dfb15b !important;
       font-weight: 600;
     }
     .form-control-dark:focus {
@@ -58,7 +67,6 @@
       color: #dfb15b;
       box-shadow: 0 0 0 0.25rem rgba(223, 177, 91, 0.2);
     }
-    /* Mengubah warna teks placeholder (petunjuk cetakan dalam kotak) menjadi kuning redup */
     .form-control-dark::placeholder {
       color: rgba(223, 177, 91, 0.6) !important;
       font-weight: 400;
@@ -74,18 +82,6 @@
     .btn-danger-custom:hover {
       background-color: #b91c1c;
       color: white;
-      transform: translateY(-1px);
-    }
-    .btn-danger-custom:active {
-      transform: translateY(0);
-    }
-    .logo-container {
-      text-align: center;
-      margin-top: 30px;
-    }
-    .logo-img {
-      max-height: 90px;
-      width: auto;
     }
   </style>
 </head>
@@ -93,9 +89,9 @@
 
   <div class="container px-3">
     
-   <div class="logo-container">
-  <img src="logo.png" alt="Aladdin Logo" class="logo-img">
-</div>
+    <div class="logo-container">
+      <img src="logo.png" alt="Aladdin Logo" class="logo-img">
+    </div>
 
     <div class="card card-custom">
       <div class="card-header-brand">
@@ -104,20 +100,17 @@
       </div>
       
       <div class="card-body p-4">
-        <form onsubmit="handleFormSubmit(event)">
-          
-          <div class="mb-3">
-            <label class="form-label form-label-custom text-aladdin-gold">USERNAME PETUGAS</label>
-            <input type="text" id="username" class="form-control form-control-dark py-2.5" placeholder="Masukkan nama pengguna" autocomplete="username" required>
-          </div>
-          
-          <div class="mb-4">
-            <label class="form-label form-label-custom text-aladdin-gold">PASSWORD</label>
-            <input type="password" id="password" class="form-control form-control-dark py-2.5" placeholder="Masukkan kata sandi" autocomplete="current-password" required>
-          </div>
-          
-          <button type="submit" class="btn btn-danger-custom w-100 py-2.5 text-uppercase">Masuk Sistem</button>
-        </form>
+        <div class="mb-3">
+          <label class="form-label form-label-custom text-aladdin-gold">USERNAME PETUGAS</label>
+          <input type="text" id="username" class="form-control form-control-dark py-2.5" placeholder="Masukkan nama pengguna">
+        </div>
+        
+        <div class="mb-4">
+          <label class="form-label form-label-custom text-aladdin-gold">PASSWORD</label>
+          <input type="password" id="password" class="form-control form-control-dark py-2.5" placeholder="Masukkan kata sandi">
+        </div>
+        
+        <button onclick="prosesLoginKonektor()" class="btn btn-danger-custom w-100 py-2.5 text-uppercase">Masuk Sistem</button>
       </div>
     </div>
 
@@ -125,21 +118,43 @@
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
-    function handleFormSubmit(e) {
-      e.preventDefault();
-      
-      // Simulasi loading integrasi data
+    function prosesLoginKonektor() {
+      const userVal = document.getElementById('username').value;
+      const passVal = document.getElementById('password').value;
+
+      if(!userVal || !passVal) {
+        Swal.fire('Perhatian', 'Username dan password tidak boleh kosong.', 'warning');
+        return;
+      }
+
       Swal.fire({
         title: 'Memeriksa Data...',
-        text: 'Menghubungkan ke pusat data Aladdin Shaokao',
+        text: 'Menghubungkan ke server basis data',
         allowOutsideClick: false,
         didOpen: () => { Swal.showLoading(); }
       });
-      
-      // Bagian ini nanti menyambung ke fungsi backend Apps Script Anda
-      setTimeout(() => {
+
+      // WAJIB ADA: Mengirim data ke file Kode.gs Anda yang ada di Google Drive
+      google.script.run.withSuccessHandler(function(response) {
         Swal.close();
-      }, 2000);
+        if(response.status === "success") {
+          Swal.fire({
+            icon: 'success',
+            title: 'Login Sukses',
+            text: 'Selamat datang, ' + response.data.Nama_Lengkap,
+            timer: 1500,
+            showConfirmButton: false
+          }).then(() => {
+            // Jika sukses, lempar halaman atau buka form utama Anda di sini
+            window.location.reload(); 
+          });
+        } else {
+          Swal.fire('Gagal Masuk', response.message, 'error');
+        }
+      }).withFailureHandler(function(err) {
+        Swal.close();
+        Swal.fire('Eror Sistem', 'Koneksi backend gagal: ' + err.message, 'error');
+      }).verifikasiLoginBackend(userVal, passVal);
     }
   </script>
 </body>
