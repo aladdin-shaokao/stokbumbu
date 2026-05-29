@@ -10,39 +10,41 @@
             padding: 0;
             height: 100%;
             font-family: Arial, sans-serif;
-            background-color: #111827; /* Mengganti latar belakang utama menjadi gelap/hitam elegan */
+            background-color: #f4f6f9;
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
         
-        /* 1. PERBAIKAN LOGO: MEMPERBESAR DAN MERAPIKAN NAVBAR */
+        /* WARNA UTAMA LATAR BELAKANG IFRAME */
+        .app-container {
+            flex-grow: 1;
+            width: 100%;
+            height: calc(100% - 140px);
+            position: relative;
+        }
+        
+        /* 🛠️ PERBAIKAN: MENGUBAH BACKGROUND LOGO MENJADI HITAM PEKAT */
         .navbar-logo {
-            background-color: #ffffff;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            padding: 15px 20px; /* Menambah padding agar navbar sedikit lebih longgar */
+            background-color: #000000; /* Mengubah background area logo dari putih (#ffffff) menjadi hitam pekat (#000000) */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); /* Membuat bayangan sedikit lebih tebal agar kontras */
+            padding: 10px 15px; 
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 100;
-            height: 90px; /* Menaikkan tinggi navbar dari 65px menjadi 90px */
+            height: 140px; 
             box-sizing: border-box;
-            border-bottom: 3px solid #dc2626; /* Memberikan garis aksen merah di bawah logo */
-        }
-        .navbar-logo img {
-            height: 65px; /* Memperbesar tinggi logo dari 45px menjadi 65px agar terlihat sangat jelas */
-            width: auto;
-            max-width: 280px;
-            object-fit: contain;
+            border-bottom: 4px solid #dc2626; /* Garis merah pembatas tetap dipertahankan agar estetis */
         }
         
-        /* CONTAINER UTAMA APLIKASI */
-        .app-container {
-            flex-grow: 1;
-            width: 100%;
-            height: calc(100% - 90px);
-            position: relative;
+        .navbar-logo img {
+            height: 110px; 
+            width: auto;
+            max-width: 90%; 
+            object-fit: contain;
         }
+
         iframe {
             width: 100%;
             height: 100%;
@@ -54,7 +56,7 @@
 <body>
 
     <div class="navbar-logo">
-        <img src="logo.png" alt="Aladdin Shaokao Logo" onerror="this.src='https://placehold.co/300x70?text=ALADDIN+SHAOKAO'">
+        <img src="logo.png" alt="Aladdin Shaokao Logo" onerror="this.src='https://placehold.co/350x110/000000/ffffff?text=ALADDIN+SHAOKAO'">
     </div>
 
     <div class="app-container">
