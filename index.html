@@ -8,87 +8,24 @@
   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 
   <style>
-    body {
-      background-color: #0b0f17;
-      font-family: Arial, sans-serif;
-      color: #f3f4f6;
-    }
-    .logo-container {
-      text-align: center;
-      margin-top: 25px;
-      margin-bottom: -15px;
-    }
-    /* UKURAN LOGO DIZOOM BIAR MANTAP DAN BESAR */
-    .logo-img {
-      max-height: 180px; 
-      width: auto;
-      object-fit: contain;
-    }
-    .card-custom {
-      max-width: 440px;
-      margin: 30px auto;
-      border-radius: 16px;
-      background-color: #1f2937;
-      border: 1px solid #374151;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.5);
-      overflow: hidden;
-    }
-    .card-header-brand {
-      background: linear-gradient(135deg, #dc2626, #991b1b);
-      padding: 24px;
-      text-align: center;
-      border-bottom: 1px solid #374151;
-    }
-    .brand-logo {
-      font-size: 26px;
-      font-weight: 800;
-      letter-spacing: 1.5px;
-      color: #ffffff;
-      margin-bottom: 4px;
-    }
-    .text-aladdin-gold {
-      color: #dfb15b !important;
-    }
-    .form-label-custom {
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      margin-bottom: 6px;
-    }
-    .form-control-dark {
-      background-color: #111827;
-      border: 1px solid #4b5563;
-      color: #dfb15b !important;
-      font-weight: 600;
-    }
-    .form-control-dark:focus {
-      background-color: #111827;
-      border-color: #dfb15b;
-      color: #dfb15b;
-      box-shadow: 0 0 0 0.25rem rgba(223, 177, 91, 0.2);
-    }
-    .form-control-dark::placeholder {
-      color: rgba(223, 177, 91, 0.6) !important;
-      font-weight: 400;
-    }
-    .btn-danger-custom {
-      background-color: #dc2626;
-      color: white;
-      border: none;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      transition: all 0.2s ease;
-    }
-    .btn-danger-custom:hover {
-      background-color: #b91c1c;
-      color: white;
-    }
+    body { background-color: #0b0f17; font-family: Arial, sans-serif; color: #f3f4f6; }
+    .logo-container { text-align: center; margin-top: 25px; margin-bottom: -15px; }
+    .logo-img { max-height: 180px; width: auto; object-fit: contain; }
+    .card-custom { max-width: 440px; margin: 30px auto; border-radius: 16px; background-color: #1f2937; border: 1px solid #374151; box-shadow: 0 12px 30px rgba(0,0,0,0.5); overflow: hidden; }
+    .card-header-brand { background: linear-gradient(135deg, #dc2626, #991b1b); padding: 24px; text-align: center; border-bottom: 1px solid #374151; }
+    .brand-logo { font-size: 26px; font-weight: 800; letter-spacing: 1.5px; color: #ffffff; margin-bottom: 4px; }
+    .text-aladdin-gold { color: #dfb15b !important; }
+    .form-label-custom { font-size: 12px; font-weight: 700; letter-spacing: 1px; margin-bottom: 6px; }
+    .form-control-dark { background-color: #111827; border: 1px solid #4b5563; color: #dfb15b !important; font-weight: 600; }
+    .form-control-dark:focus { background-color: #111827; border-color: #dfb15b; color: #dfb15b; box-shadow: 0 0 0 0.25rem rgba(223, 177, 91, 0.2); }
+    .form-control-dark::placeholder { color: rgba(223, 177, 91, 0.6) !important; font-weight: 400; }
+    .btn-danger-custom { background-color: #dc2626; color: white; border: none; font-weight: 700; letter-spacing: 0.5px; transition: all 0.2s ease; }
+    .btn-danger-custom:hover { background-color: #b91c1c; color: white; }
   </style>
 </head>
 <body>
 
   <div class="container px-3">
-    
     <div class="logo-container">
       <img src="logo.png" alt="Aladdin Logo" class="logo-img">
     </div>
@@ -113,7 +50,6 @@
         <button onclick="prosesLoginKonektor()" class="btn btn-danger-custom w-100 py-2.5 text-uppercase">Masuk Sistem</button>
       </div>
     </div>
-
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -134,27 +70,34 @@
         didOpen: () => { Swal.showLoading(); }
       });
 
-      // WAJIB ADA: Mengirim data ke file Kode.gs Anda yang ada di Google Drive
-      google.script.run.withSuccessHandler(function(response) {
-        Swal.close();
-        if(response.status === "success") {
-          Swal.fire({
-            icon: 'success',
-            title: 'Login Sukses',
-            text: 'Selamat datang, ' + response.data.Nama_Lengkap,
-            timer: 1500,
-            showConfirmButton: false
-          }).then(() => {
-            // Jika sukses, lempar halaman atau buka form utama Anda di sini
-            window.location.reload(); 
-          });
-        } else {
-          Swal.fire('Gagal Masuk', response.message, 'error');
-        }
-      }).withFailureHandler(function(err) {
-        Swal.close();
-        Swal.fire('Eror Sistem', 'Koneksi backend gagal: ' + err.message, 'error');
-      }).verifikasiLoginBackend(userVal, passVal);
+      // ⚠️ GANTI URL DI BAWAH INI DENGAN URL WEB APP (DEPLOYMENT) GOOGLE APPS SCRIPT ANDA YANG AKHIRANNYA /exec
+      const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbxONH3k6KSfAbeRQWc_hTNewsneDb2LAS47ZrGC56S4pB_1wrEKzpEBx-oLkp18_jBwbQ/exec";
+
+      // Menggunakan fetch untuk menembak data dari GitHub ke Google Script Backend
+      fetch(`${URL_WEB_APP}?action=login&user=${encodeURIComponent(userVal)}&pass=${encodeURIComponent(passVal)}`)
+        .then(response => response.json())
+        .then(response => {
+          Swal.close();
+          if(response.status === "success") {
+            Swal.fire({
+              icon: 'success',
+              title: 'Login Sukses',
+              text: 'Selamat datang, ' + response.data.Nama_Lengkap,
+              timer: 1500,
+              showConfirmButton: false
+            }).then(() => {
+              // Redirect atau buka form utama setelah login sukses
+              window.location.href = URL_WEB_APP; 
+            });
+          } else {
+            Swal.fire('Gagal Masuk', response.message, 'error');
+          }
+        })
+        .catch(err => {
+          Swal.close();
+          // Jika backend sudah diperbaiki di Langkah 1, eror ini tidak akan muncul lagi
+          Swal.fire('Eror Sistem', 'Gagal terhubung ke Google Script. Pastikan Web App sudah di-deploy sebagai "Anyone".', 'error');
+        });
     }
   </script>
 </body>
