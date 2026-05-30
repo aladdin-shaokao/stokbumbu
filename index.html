@@ -115,66 +115,178 @@
 
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+ <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
+    // ⚠️ PASTE URL WEB APP BARU ANDA DI SINI (Pastikan berakhiran /exec)
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxONH3k6KSfAbeRQWc_hTNewsneDb2LAS47ZrGC56S4pB_1wrEKzpEBx-oLkp18_jBwbQ/exec";
+
+    // FUNGSI JEMBATAN UNTUK MENGIRIM DATA LINTAS SERVER SECARA AMAN
+    function kirimPermintaanJSONP(urlAwal, parameterData, fungsiSukses, fungsiGagal) {
+      const namaFungsiCallback = 'aladdin_cb_' + Math.round(Math.random() * 1000000);
+      
+      // Menempelkan fungsi penangkap data sementara ke window browser
+      window[namaFungsiCallback] = function(responServer) {
+        delete window[namaFungsiCallback];
+        document.body.removeChild(tagScript);
+        fungsiSukses(responServer);
+      };
+
+      // Menyusun parameter URL string
+      let urlLengkap = urlAwal + "?callback=" + namaFungsiCallback;
+      for (let kunci in parameterData) {
+        urlLengkap += "&" + kunci + "=" + encodeURIComponent(parameterData[kunci]);
+      }
+
+      // Membuat tag elemen script bayangan untuk memicu pertukaran data tanpa halangan CORS
+      const tagScript = document.createElement('script');
+      tagScript.src = urlLengkap;
+      tagScript.onerror = function() {
+        delete window[namaFungsiCallback];
+        document.body.removeChild(tagScript);
+        if (fungsiGagal) fungsiGagal();
+      };
+      document.body.appendChild(tagScript);
+    }
+
     function prosesLoginKonektor() {
       const userVal = document.getElementById('username').value;
       const passVal = document.getElementById('password').value;
 
       if(!userVal || !passVal) {
-        Swal.fire('Perhatian', 'Username dan password tidak boleh kosong.', 'warning');
+        Swal.fire('Perhatian', 'Username dan password wajib diisi.', 'warning');
         return;
       }
 
-      Swal.fire({
-        title: 'Memeriksa Data...',
-        text: 'Menghubungkan ke server basis data',
-        allowOutsideClick: false,
-        didOpen: () => { Swal.showLoading(); }
-      });
+      Swal.fire({ title: 'Memeriksa Data...', text: 'Menghubungkan ke server basis data Aladdin', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
-      // Berkomunikasi langsung via engine bawaan Google Script Apps
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run
-          .withSuccessHandler(function(response) {
-            Swal.close();
-            // Jika backend Anda mengembalikan teks string atau objek, kita sesuaikan penanganannya
-            let res = typeof response === 'string' ? JSON.parse(response) : response;
-            
-            if(res.status === "success" || res.success === true) {
-              Swal.fire({
-                icon: 'success',
-                title: 'Login Sukses',
-                text: 'Selamat datang kembali',
-                timer: 1500,
-                showConfirmButton: false
-              }).then(() => {
-                // Diarahkan langsung ke halaman form utama setelah sukses
-                if(res.redirectUrl) {
-                  window.location.href = res.redirectUrl;
-                }
-              });
-            } else {
-              Swal.fire('Gagal Masuk', res.message || 'Username atau Password salah.', 'error');
-            }
-          })
-          .withFailureHandler(function(err) {
-            Swal.close();
-            Swal.fire('Eror Server', err.message, 'error');
-          })
-          .verifikasiLoginBackend(userVal, passVal); // <-- Pastikan nama fungsi di Kode.gs Anda sama dengan ini
-      } else {
-        // Fallback Pengaman jika dibuka langsung di luar ekosistem Web App Google
-        setTimeout(() => {
+      kirimPermintaanJSONP(
+        WEB_APP_URL,
+        { action: "login", username: userVal, password: passVal },
+        function(res) {
           Swal.close();
-          Swal.fire({
-            icon: 'error',
-            title: 'Akses Terbatas',
-            text: 'Halaman ini harus dijalankan langsung dari link Web App Google Exec Anda agar terhubung ke database.',
-          });
-        }, 1000);
+          if(res.status === "success") {
+            document.getElementById('namaPetugasAktif').innerText = res.data.Nama_Lengkap;
+            document.getElementById('halamanLogin').style.display = 'none';
+            document.getElementById('halamanDashboard').style.display = 'block';
+            mulaiVerifikasiGPS();
+          } else {
+            Swal.fire('Gagal Masuk', res.message, 'error');
+          }
+        },
+        function() {
+          Swal.close();
+          Swal.fire('Eror Server', 'Gagal merespon basis data. Pastikan status deployment Web App Anda diatur ke "Anyone".', 'error');
+        }
+      );
+    }
+
+    function mulaiVerifikasiGPS() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          function(position) { suksesVerifikasiGPS("GPS Terverifikasi Aktif"); }, 
+          function(error) { gagalVerifikasiGPS(); },
+          { enableHighAccuracy: true, timeout: 6000 }
+        );
+      } else {
+        gagalVerifikasiGPS();
       }
     }
+
+    function suksesVerifikasiGPS(pesan) {
+      const box = document.getElementById('gpsStatusBox');
+      box.className = "p-3 rounded text-center fw-bold small bg-success text-white";
+      box.innerHTML = `<i class="fas fa-check-circle me-2"></i> ${pesan}`;
+      document.getElementById('menuSistem').style.display = 'block';
+    }
+
+    function gagalVerifikasiGPS() {
+      const box = document.getElementById('gpsStatusBox');
+      box.className = "p-3 rounded fw-bold small bg-warning text-dark d-flex justify-content-between align-items-center";
+      box.innerHTML = `
+        <span><i class="fas fa-exclamation-triangle me-2"></i> GPS Lemah / Tidak Terdeteksi</span>
+        <button type="button" onclick="suksesVerifikasiGPS('GPS Dilewati (Mode Darurat)')" class="btn btn-sm btn-dark fw-bold px-2 py-1">Bypass</button>
+      `;
+      document.getElementById('menuSistem').style.display = 'block';
+    }
+
+    function bukaFormTrans(tipe) {
+      const areaForm = document.getElementById('areaFormTransaksi');
+      const judul = document.getElementById('judulForm');
+      const labelJumlah = document.getElementById('labelJumlah');
+      
+      document.getElementById('jenisTransaksi').value = tipe;
+      areaForm.classList.remove('d-none');
+      
+      if(tipe === 'MASUK') {
+        judul.innerText = "Form Barang Masuk (Restock)";
+        judul.className = "fw-bold text-success text-center mb-4";
+        labelJumlah.innerText = "JUMLAH STOK MASUK";
+      } else {
+        judul.innerText = "Form Barang Keluar (Pemakaian)";
+        judul.className = "fw-bold text-danger text-center mb-4";
+        labelJumlah.innerText = "JUMLAH STOK KELUAR";
+      }
+      areaForm.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function prosesDekodeBarcodeFile(input) {
+      if (!input.files || input.files.length === 0) return;
+
+      Swal.fire({ title: 'Membaca Barcode...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+      const fileGambar = input.files[0];
+      const html5QrCode = new Html5Qrcode("barcodeBumbu");
+
+      html5QrCode.scanFile(fileGambar, true)
+        .then(teksBarcode => {
+          Swal.close();
+          document.getElementById('barcodeBumbu').value = teksBarcode;
+          Swal.fire({ title: 'Terbaca!', icon: 'success', timer: 1000, showConfirmButton: false });
+        })
+        .catch(err => {
+          Swal.close();
+          Swal.fire('Gagal Membaca', 'Stiker barcode bumbu kurang jelas atau tidak terdeteksi. Silakan coba lagi.', 'warning');
+          document.getElementById('barcodeBumbu').value = "";
+        });
+    }
+
+    function fotoBerhasilDiambil(input) {
+      if (input.files && input.files[0]) {
+        document.getElementById('textStatusFoto').innerText = "✓ FOTO BERHASIL DIKONFIRMASI";
+        document.getElementById('textStatusFoto').className = "small fw-bold text-success";
+      }
+    }
+
+    function kirimDataTransaksi(e) {
+      e.preventDefault();
+      Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+      const payload = {
+        jenis: document.getElementById('jenisTransaksi').value,
+        barcode: document.getElementById('barcodeBumbu').value,
+        jumlah: document.getElementById('jumlahBumbu').value
+      };
+
+      kirimPermintaanJSONP(
+        WEB_APP_URL,
+        { action: "transaksi", payload: JSON.stringify(payload) },
+        function(res) {
+          Swal.close();
+          if (res.status === "success") {
+            Swal.fire('Berhasil!', 'Transaksi bumbu berhasil dicatat ke Google Sheets.', 'success').then(() => {
+              document.getElementById('formTransaksi').reset();
+              document.getElementById('areaFormTransaksi').classList.add('d-none');
+              document.getElementById('textStatusFoto').innerText = "TAP TO CAPTURE PHOTO";
+              document.getElementById('textStatusFoto').className = "small fw-bold text-uppercase text-danger";
+            });
+          } else {
+            Swal.fire('Gagal', res.message, 'error');
+          }
+        },
+        function() {
+          Swal.close();
+          Swal.fire('Eror Transaksi', 'Koneksi terputus saat menyimpan data.', 'error');
+        }
+      );
+    }
   </script>
-</body>
-</html>
