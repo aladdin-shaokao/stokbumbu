@@ -122,11 +122,16 @@
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
-    // ⚠️ URL WEB APP EXEC GOOGLE APPS SCRIPT ANDA
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxONH3k6KSfAbeRQWc_hTNewsneDb2LAS47ZrGC56S4pB_1wrEKzpEBx-oLkp18_jBwbQ/exec";
 
-    // Tempat Penampungan Memori Manifes Koordinat Cabang dari Database
     let DAFTAR_OUTLET_DARI_SHEET = [];
+    
+    // Variabel Global untuk Menampung Hasil Validasi GPS & Foto Base64
+    let NAMA_PETUGAS_LOGGED_IN = "";
+    let CABANG_TERVERIFIKASI = "Belum Diketahui";
+    let KOORDINAT_TEREKAM = "0,0";
+    let JARAK_TERHITUNG = "0";
+    let DATA_BASE64_FOTO = "";
 
     function eksekusiKoneksiJSONP() {
       const userVal = document.getElementById('username').value;
@@ -152,14 +157,12 @@
         document.body.removeChild(tagScript);
 
         if(respon.status === "success") {
-          document.getElementById('namaPetugasAktif').innerText = respon.data.Nama_Lengkap;
+          NAMA_PETUGAS_LOGGED_IN = respon.data.Nama_Lengkap;
+          document.getElementById('namaPetugasAktif').innerText = NAMA_PETUGAS_LOGGED_IN;
           document.getElementById('halamanLogin').style.display = 'none';
           document.getElementById('halamanDashboard').style.display = 'block';
 
-          // Menyimpan array "Data_Cabang" yang dikirim balik oleh server Apps Script
           DAFTAR_OUTLET_DARI_SHEET = respon.cabangList || [];
-
-          // Memulai proses scanning GPS handphone
           prosesValidasiLokasiKerja();
         } else {
           Swal.fire('Gagal Masuk', respon.message, 'error');
@@ -178,27 +181,35 @@
       document.body.appendChild(tagScript);
     }
 
-    // ================= PARSING LOKASI & KALKULASI HAVERSINE DETEKSI CABANG =================
     function prosesValidasiLokasiKerja() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           function(position) {
             const latUser = position.coords.latitude;
             const lngUser = position.coords.longitude;
+            KOORDINAT_TEREKAM = `${latUser}, ${lngUser}`;
+            
             let cabangDitemukan = null;
+            let minimalJarak = 9999999;
 
-            // Mencocokkan jarak user dengan seluruh data koordinat di sheet Data_Cabang
             for (let outlet of DAFTAR_OUTLET_DARI_SHEET) {
               const jarak = hitungRumusHaversine(latUser, lngUser, outlet.lat, outlet.lng);
               if (jarak <= outlet.radiusMeter) {
                 cabangDitemukan = outlet.nama;
+                JARAK_TERHITUNG = Math.round(jarak).toString();
                 break;
+              }
+              if (jarak < minimalJarak) {
+                minimalJarak = jarak;
+                JARAK_TERHITUNG = Math.round(jarak).toString();
               }
             }
 
             if (cabangDitemukan) {
-              tampilkanStatusGPS("sukses", `GPS TERVERIFIKASI AKTIF (${cabangDitemukan})`);
+              CABANG_TERVERIFIKASI = cabangDitemukan;
+              tampilkanStatusGPS("sukses", `GPS TERVERIFIKASI AKTIF (${CABANG_TERVERIFIKASI})`);
             } else {
+              CABANG_TERVERIFIKASI = "Luar Radius";
               tampilkanStatusGPS("luar_radius", "LOKASI DI LUAR RADIUS OUTLET RESMI");
             }
           },
@@ -212,7 +223,6 @@
       }
     }
 
-    // Fungsi Pengukur Jarak Lengkung Bumi (Satuan Meter)
     function hitungRumusHaversine(lat1, lon1, lat2, lon2) {
       const R = 6371e3; 
       const phi1 = lat1 * Math.PI / 180;
@@ -230,7 +240,6 @@
 
     function tampilkanStatusGPS(tipe, pesan) {
       const box = document.getElementById('gpsStatusBox');
-      
       if (tipe === "sukses") {
         box.className = "bg-success text-white p-3 rounded text-center fw-bold small";
         box.innerHTML = `<i class="fas fa-check-circle me-2"></i> ${pesan}`;
@@ -250,6 +259,7 @@
     }
 
     function bypassGpsMode() {
+      CABANG_TERVERIFIKASI = "Bypass Darurat";
       tampilkanStatusGPS("sukses", `GPS DILEWATI (MODE DARURAT)`);
     }
 
@@ -289,8 +299,6 @@
       reader.onload = function(e) {
         const img = new Image();
         img.onload = function() {
-          // --- PROSES KOMPRESI OTOMATIS ---
-          // Membatasi resolusi gambar maksimal ke 800 piksel agar sangat ringan dibaca mesin
           const MAX_WIDTH = 800;
           const MAX_HEIGHT = 800;
           let width = img.width;
@@ -314,16 +322,13 @@
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
 
-          // Mengonversi gambar hasil kompresi ke bentuk Blob murni yang siap scan
           canvas.toBlob(function(blob) {
             const fileSiapScan = new File([blob], fileGambar.name, { type: "image/jpeg" });
             const html5QrCode = new Html5Qrcode("barcodeBumbu");
 
-            // Lakukan pemindaian pada file yang sudah dikompres dan diringankan
             html5QrCode.scanFile(fileSiapScan, true)
               .then(teksBarcode => {
                 Swal.close();
-                // Mengisi kotak input dengan hasil scan
                 document.getElementById('barcodeBumbu').value = teksBarcode;
                 
                 Swal.fire({ 
@@ -344,7 +349,7 @@
                 );
                 document.getElementById('barcodeBumbu').value = "";
               });
-          }, 'image/jpeg', 0.8); // Kualitas kompresi 80% (sangat tajam tapi super ringan)
+          }, 'image/jpeg', 0.8);
         };
         img.src = e.target.result;
       };
@@ -353,19 +358,58 @@
 
     function fotoBerhasilDiambil(input) {
       if (input.files && input.files[0]) {
-        document.getElementById('textStatusFoto').innerText = "✓ FOTO BERHASIL DIKONFIRMASI";
-        document.getElementById('textStatusFoto').className = "small fw-bold text-success";
+        document.getElementById('textStatusFoto').innerText = "⏳ MEMPROSES FOTO...";
+        document.getElementById('textStatusFoto').className = "small fw-bold text-warning";
+        
+        const file = input.files[0];
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+          const img = new Image();
+          img.onload = function() {
+            // Kompresi foto fisik bumbu ke resolusi maksimal 600px agar hemat ruang sel data Sheets
+            const canvas = document.createElement('canvas');
+            const MAX_SIZE = 600;
+            let w = img.width;
+            let h = img.height;
+            
+            if (w > h) {
+              if (w > MAX_SIZE) { h *= MAX_SIZE / w; w = MAX_SIZE; }
+            } else {
+              if (h > MAX_SIZE) { w *= MAX_SIZE / h; h = MAX_SIZE; }
+            }
+            
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            
+            // Simpan teks Base64 gambar ke variabel global
+            DATA_BASE64_FOTO = canvas.toDataURL('image/jpeg', 0.7);
+            
+            document.getElementById('textStatusFoto').innerText = "✓ FOTO BERHASIL DIKONFIRMASI";
+            document.getElementById('textStatusFoto').className = "small fw-bold text-success";
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
       }
     }
 
     function kirimDataTransaksi(e) {
       e.preventDefault();
-      Swal.fire({ title: 'Menyimpan Transaksi...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+      Swal.fire({ title: 'Menyimpan Transaksi...', text: 'Mengirim baris log lengkap ke database...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
+      // MENYUSUN DATA LENGKAP SECARA TERURUT UNTUK INPUT APPEND ROW DI APPS_SCRIPT
       const payload = {
-        jenis: document.getElementById('jenisTransaksi').value,
+        petugas: NAMA_PETUGAS_LOGGED_IN,
+        cabang: CABANG_TERVERIFIKASI,
         barcode: document.getElementById('barcodeBumbu').value,
-        jumlah: document.getElementById('jumlahBumbu').value
+        jumlah: document.getElementById('jumlahBumbu').value,
+        jenis: document.getElementById('jenisTransaksi').value, // Tipe MASUK atau KELUAR
+        fotoBase64: DATA_BASE64_FOTO,
+        koordinat: KOORDINAT_TEREKAM,
+        jarak: JARAK_TERHITUNG
       };
 
       const namaCallbackTrans = 'aladdin_trans_cb_' + Math.round(Math.random() * 100000);
@@ -381,6 +425,7 @@
             document.getElementById('areaFormTransaksi').classList.add('d-none');
             document.getElementById('textStatusFoto').innerText = "TAP TO CAPTURE PHOTO";
             document.getElementById('textStatusFoto').className = "small fw-bold text-uppercase text-danger";
+            DATA_BASE64_FOTO = ""; // Reset kontainer memori foto
           });
         } else {
           Swal.fire('Gagal', respon.message, 'error');
