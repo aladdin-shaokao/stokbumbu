@@ -278,34 +278,35 @@
       Swal.fire({ title: 'Membaca Barcode...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
       const fileGambar = input.files[0];
-      const html5QrCode = new Html5Qrcode("barcodeBumbu");
+      
+      // Mengaktifkan mode pemicu pindaian eksperimental agar lebih sensitif terhadap kode QR yang padat
+      const html5QrCode = new Html5Qrcode("barcodeBumbu", { experimentalFeatures: { useBarCodeDetectorIfSupported: true } });
 
+      // Argumen kedua 'true' memerintahkan library untuk mencoba memindai ulang dengan filter kontras jika pemindaian pertama gagal
       html5QrCode.scanFile(fileGambar, true)
         .then(teksBarcode => {
           Swal.close();
-          
-          // Masukkan teks/link hasil scan ke dalam input form
           document.getElementById('barcodeBumbu').value = teksBarcode;
           
-          // DETEKSI OTOMATIS: Jika hasil scan berisi Link Gambar atau Data Base64 Gambar
           if (teksBarcode.startsWith('http') || teksBarcode.startsWith('data:image')) {
             Swal.fire({
               title: 'QR Code Gambar Terdeteksi!',
               text: 'Sistem berhasil membaca data gambar dari QR Code.',
-              imageUrl: teksBarcode, // Langsung menampilkan gambar di dalam pop-up
+              imageUrl: teksBarcode,
               imageWidth: 200,
               imageHeight: 200,
               imageAlt: 'Preview Bumbu',
               confirmButtonText: 'Oke, Lanjutkan'
             });
           } else {
-            // Jika yang di-scan adalah barcode teks biasa/kode barang standar
             Swal.fire({ title: 'Terbaca!', text: 'Kode: ' + teksBarcode, icon: 'success', timer: 1500, showConfirmButton: false });
           }
         })
         .catch(err => {
           Swal.close();
-          Swal.fire('Gagal Membaca', 'Stiker barcode/QR tidak terbaca atau format salah. Silakan foto ulang.', 'warning');
+          // Menampilkan log error asli di konsol untuk kebutuhan debugging jika diperlukan
+          console.error("Detail Error Scan:", err);
+          Swal.fire('Gagal Membaca', 'Stiker barcode/QR terlalu padat atau blur. Gunakan link yang diperpendek (TinyURL) agar QR Code lebih renggang.', 'warning');
           document.getElementById('barcodeBumbu').value = "";
         });
     }
