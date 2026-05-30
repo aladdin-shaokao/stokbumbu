@@ -283,12 +283,29 @@
       html5QrCode.scanFile(fileGambar, true)
         .then(teksBarcode => {
           Swal.close();
+          
+          // Masukkan teks/link hasil scan ke dalam input form
           document.getElementById('barcodeBumbu').value = teksBarcode;
-          Swal.fire({ title: 'Terbaca!', icon: 'success', timer: 1000, showConfirmButton: false });
+          
+          // DETEKSI OTOMATIS: Jika hasil scan berisi Link Gambar atau Data Base64 Gambar
+          if (teksBarcode.startsWith('http') || teksBarcode.startsWith('data:image')) {
+            Swal.fire({
+              title: 'QR Code Gambar Terdeteksi!',
+              text: 'Sistem berhasil membaca data gambar dari QR Code.',
+              imageUrl: teksBarcode, // Langsung menampilkan gambar di dalam pop-up
+              imageWidth: 200,
+              imageHeight: 200,
+              imageAlt: 'Preview Bumbu',
+              confirmButtonText: 'Oke, Lanjutkan'
+            });
+          } else {
+            // Jika yang di-scan adalah barcode teks biasa/kode barang standar
+            Swal.fire({ title: 'Terbaca!', text: 'Kode: ' + teksBarcode, icon: 'success', timer: 1500, showConfirmButton: false });
+          }
         })
         .catch(err => {
           Swal.close();
-          Swal.fire('Gagal Membaca', 'Stiker barcode tidak terbaca. Silakan foto ulang kembali.', 'warning');
+          Swal.fire('Gagal Membaca', 'Stiker barcode/QR tidak terbaca atau format salah. Silakan foto ulang.', 'warning');
           document.getElementById('barcodeBumbu').value = "";
         });
     }
