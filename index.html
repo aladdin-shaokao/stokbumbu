@@ -64,8 +64,8 @@
 
     <div class="container px-3 pb-5">
       <div class="mt-4">
-        <div id="gpsStatusBox" class="bg-success text-white p-3 rounded text-center fw-bold small">
-          <i class="fas fa-check-circle me-2"></i> GPS TERVERIFIKASI AKTIF (CABANG)
+        <div id="gpsStatusBox" class="bg-secondary text-white p-3 rounded text-center fw-bold small">
+          <i class="fas fa-spinner fa-spin me-2"></i> Memverifikasi Lokasi Cabang...
         </div>
       </div>
 
@@ -122,8 +122,11 @@
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
-    // ⚠️ MASUKKAN URL WEB APP EXEC SCRIPT TERBARU ANDA DI SINI:
+    // ⚠️ URL WEB APP EXEC GOOGLE APPS SCRIPT ANDA
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxONH3k6KSfAbeRQWc_hTNewsneDb2LAS47ZrGC56S4pB_1wrEKzpEBx-oLkp18_jBwbQ/exec";
+
+    // Tempat Penampungan Memori Manifes Koordinat Cabang dari Database
+    let DAFTAR_OUTLET_DARI_SHEET = [];
 
     function eksekusiKoneksiJSONP() {
       const userVal = document.getElementById('username').value;
@@ -141,7 +144,6 @@
         didOpen: () => { Swal.showLoading(); } 
       });
 
-      // Menghidupkan Fungsi Callback Global Dinamis
       const namaCallback = 'aladdin_login_cb_' + Math.round(Math.random() * 100000);
       
       window[namaCallback] = function(respon) {
@@ -153,12 +155,17 @@
           document.getElementById('namaPetugasAktif').innerText = respon.data.Nama_Lengkap;
           document.getElementById('halamanLogin').style.display = 'none';
           document.getElementById('halamanDashboard').style.display = 'block';
+
+          // Menyimpan array "Data_Cabang" yang dikirim balik oleh server Apps Script
+          DAFTAR_OUTLET_DARI_SHEET = respon.cabangList || [];
+
+          // Memulai proses scanning GPS handphone
+          prosesValidasiLokasiKerja();
         } else {
           Swal.fire('Gagal Masuk', respon.message, 'error');
         }
       };
 
-      // Menembak Script Jembatan tanpa deteksi blokir lokal
       const urlTujuan = WEB_APP_URL + "?callback=" + namaCallback + "&action=login&username=" + encodeURIComponent(userVal) + "&password=" + encodeURIComponent(passVal);
       const tagScript = document.createElement('script');
       tagScript.src = urlTujuan;
@@ -169,6 +176,81 @@
         Swal.fire('Koneksi Eror', 'Gagal memanggil data spreadsheet.', 'error');
       };
       document.body.appendChild(tagScript);
+    }
+
+    // ================= PARSING LOKASI & KALKULASI HAVERSINE DETEKSI CABANG =================
+    function prosesValidasiLokasiKerja() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          function(position) {
+            const latUser = position.coords.latitude;
+            const lngUser = position.coords.longitude;
+            let cabangDitemukan = null;
+
+            // Mencocokkan jarak user dengan seluruh data koordinat di sheet Data_Cabang
+            for (let outlet of DAFTAR_OUTLET_DARI_SHEET) {
+              const jarak = hitungRumusHaversine(latUser, lngUser, outlet.lat, outlet.lng);
+              if (jarak <= outlet.radiusMeter) {
+                cabangDitemukan = outlet.nama;
+                break;
+              }
+            }
+
+            if (cabangDitemukan) {
+              tampilkanStatusGPS("sukses", `GPS TERVERIFIKASI AKTIF (${cabangDitemukan})`);
+            } else {
+              tampilkanStatusGPS("luar_radius", "LOKASI DI LUAR RADIUS OUTLET RESMI");
+            }
+          },
+          function(error) {
+            tampilkanStatusGPS("eror", "GPS LEMAH / IZIN LOKASI DITOLAK");
+          },
+          { enableHighAccuracy: true, timeout: 8000 }
+        );
+      } else {
+        tampilkanStatusGPS("eror", "BROWSER TIDAK MENDUKUNG GPS");
+      }
+    }
+
+    // Fungsi Pengukur Jarak Lengkung Bumi (Satuan Meter)
+    function hitungRumusHaversine(lat1, lon1, lat2, lon2) {
+      const R = 6371e3; 
+      const phi1 = lat1 * Math.PI / 180;
+      const phi2 = lat2 * Math.PI / 180;
+      const deltaPhi = (lat2 - lat1) * Math.PI / 180;
+      const deltaLambda = (lon2 - lon1) * Math.PI / 180;
+
+      const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+                Math.cos(phi1) * Math.cos(phi2) *
+                Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+      return R * c; 
+    }
+
+    function tampilkanStatusGPS(tipe, pesan) {
+      const box = document.getElementById('gpsStatusBox');
+      
+      if (tipe === "sukses") {
+        box.className = "bg-success text-white p-3 rounded text-center fw-bold small";
+        box.innerHTML = `<i class="fas fa-check-circle me-2"></i> ${pesan}`;
+      } else if (tipe === "luar_radius") {
+        box.className = "bg-warning text-dark p-3 rounded fw-bold small d-flex justify-content-between align-items-center";
+        box.innerHTML = `
+          <span><i class="fas fa-exclamation-triangle me-2"></i> ${pesan}</span>
+          <button type="button" onclick="bypassGpsMode()" class="btn btn-sm btn-dark fw-bold px-2 py-1">Bypass</button>
+        `;
+      } else {
+        box.className = "bg-danger text-white p-3 rounded fw-bold small d-flex justify-content-between align-items-center";
+        box.innerHTML = `
+          <span><i class="fas fa-times-circle me-2"></i> ${pesan}</span>
+          <button type="button" onclick="bypassGpsMode()" class="btn btn-sm btn-light fw-bold px-2 py-1">Bypass</button>
+        `;
+      }
+    }
+
+    function bypassGpsMode() {
+      tampilkanStatusGPS("sukses", `GPS DILEWATI (MODE DARURAT)`);
     }
 
     function bukaFormTrans(tipe) {
