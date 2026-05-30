@@ -275,40 +275,80 @@
 
     function prosesDekodeBarcodeFile(input) {
       if (!input.files || input.files.length === 0) return;
-      Swal.fire({ title: 'Membaca Barcode...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+      
+      Swal.fire({ 
+        title: 'Memproses Gambar...', 
+        text: 'Mengoptimalkan resolusi foto kamera...',
+        allowOutsideClick: false, 
+        didOpen: () => { Swal.showLoading(); } 
+      });
 
       const fileGambar = input.files[0];
-      
-      // Mengaktifkan mode pemicu pindaian eksperimental agar lebih sensitif terhadap kode QR yang padat
-      const html5QrCode = new Html5Qrcode("barcodeBumbu", { experimentalFeatures: { useBarCodeDetectorIfSupported: true } });
+      const reader = new FileReader();
 
-      // Argumen kedua 'true' memerintahkan library untuk mencoba memindai ulang dengan filter kontras jika pemindaian pertama gagal
-      html5QrCode.scanFile(fileGambar, true)
-        .then(teksBarcode => {
-          Swal.close();
-          document.getElementById('barcodeBumbu').value = teksBarcode;
-          
-          if (teksBarcode.startsWith('http') || teksBarcode.startsWith('data:image')) {
-            Swal.fire({
-              title: 'QR Code Gambar Terdeteksi!',
-              text: 'Sistem berhasil membaca data gambar dari QR Code.',
-              imageUrl: teksBarcode,
-              imageWidth: 200,
-              imageHeight: 200,
-              imageAlt: 'Preview Bumbu',
-              confirmButtonText: 'Oke, Lanjutkan'
-            });
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          // --- PROSES KOMPRESI OTOMATIS ---
+          // Membatasi resolusi gambar maksimal ke 800 piksel agar sangat ringan dibaca mesin
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
           } else {
-            Swal.fire({ title: 'Terbaca!', text: 'Kode: ' + teksBarcode, icon: 'success', timer: 1500, showConfirmButton: false });
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
           }
-        })
-        .catch(err => {
-          Swal.close();
-          // Menampilkan log error asli di konsol untuk kebutuhan debugging jika diperlukan
-          console.error("Detail Error Scan:", err);
-          Swal.fire('Gagal Membaca', 'Stiker barcode/QR terlalu padat atau blur. Gunakan link yang diperpendek (TinyURL) agar QR Code lebih renggang.', 'warning');
-          document.getElementById('barcodeBumbu').value = "";
-        });
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Mengonversi gambar hasil kompresi ke bentuk Blob murni yang siap scan
+          canvas.toBlob(function(blob) {
+            const fileSiapScan = new File([blob], fileGambar.name, { type: "image/jpeg" });
+            const html5QrCode = new Html5Qrcode("barcodeBumbu");
+
+            // Lakukan pemindaian pada file yang sudah dikompres dan diringankan
+            html5QrCode.scanFile(fileSiapScan, true)
+              .then(teksBarcode => {
+                Swal.close();
+                // Mengisi kotak input dengan hasil scan
+                document.getElementById('barcodeBumbu').value = teksBarcode;
+                
+                Swal.fire({ 
+                  title: 'Scan Berhasil!', 
+                  text: 'Kode Terbaca: ' + teksBarcode, 
+                  icon: 'success', 
+                  timer: 2000, 
+                  showConfirmButton: false 
+                });
+              })
+              .catch(err => {
+                Swal.close();
+                console.error("Detail Error Scan:", err);
+                Swal.fire(
+                  'Gagal Membaca', 
+                  'Pastikan posisi QR Code tegak lurus, fokus, dan tidak terlalu jauh dari kamera. Silakan coba foto ulang.', 
+                  'warning'
+                );
+                document.getElementById('barcodeBumbu').value = "";
+              });
+          }, 'image/jpeg', 0.8); // Kualitas kompresi 80% (sangat tajam tapi super ringan)
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(fileGambar);
     }
 
     function fotoBerhasilDiambil(input) {
