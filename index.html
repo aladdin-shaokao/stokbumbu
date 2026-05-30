@@ -394,7 +394,7 @@
       }
     }
 
-    function kirimDataTransaksi(e) {
+function kirimDataTransaksi(e) {
       e.preventDefault();
 
       Swal.fire({ 
@@ -404,15 +404,15 @@
         didOpen: () => { Swal.showLoading(); } 
       });
 
+      // Menyesuaikan struktur payload agar dibaca dengan benar oleh Apps Script
       const payload = {
-        petugas: NAMA_PETUGAS_LOGGED_IN,
-        cabang: CABANG_TERVERIFIKASI,
-        barcode: document.getElementById('barcodeBumbu').value,
-        jumlah: parseInt(document.getElementById('jumlahBumbu').value) || 0,
-        jenis: document.getElementById('jenisTransaksi').value,
+        petugas: NAMA_PETUGAS_LOGGED_IN,                // Mengirim Nama Petugas asli
+        cabang: CABANG_TERVERIFIKASI,                  // Mengirim Nama Cabang (SERPONG / PIK)
+        jenisStok: document.getElementById('jenisTransaksi').value, // MASUK atau KELUAR
+        barcode: document.getElementById('barcodeBumbu').value,     // Isi teks/link QR Code
+        jumlah: parseInt(document.getElementById('jumlahBumbu').value) || 0, // Angka Jumlah Bumbu
         fotoBase64: DATA_BASE64_FOTO,
-        koordinat: KOORDINAT_TEREKAM,
-        jarak: JARAK_TERHITUNG
+        koordinat: KOORDINAT_TEREKAM
       };
 
       fetch(WEB_APP_URL, {
@@ -432,6 +432,11 @@
           DATA_BASE64_FOTO = "";
         });
       })
+      .catch((error) => {
+        console.error("Gagal Transaksi POST:", error);
+        Swal.fire('Gagal Mengirim', 'Terjadi gangguan jaringan: ' + error.toString(), 'error');
+      });
+    }
       .catch((error) => {
         console.error("Gagal Transaksi POST:", error);
         Swal.fire('Gagal Mengirim', 'Terjadi gangguan jaringan: ' + error.toString(), 'error');
