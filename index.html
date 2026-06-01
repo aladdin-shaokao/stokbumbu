@@ -24,9 +24,11 @@
     .btn-danger-custom:hover { background-color: #b91c1c; }
     
     .header-dashboard { background: linear-gradient(135deg, #dc2626, #991b1b); padding: 20px; border-bottom: 3px solid #dfb15b; }
-    .btn-menu { padding: 18px; font-weight: 800; font-size: 16px; border-radius: 12px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+    .btn-menu { padding: 18px; font-weight: 800; font-size: 16px; border-radius: 12px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.3s; }
     .btn-stok-masuk { background-color: #10b981; color: white; }
+    .btn-stok-masuk:disabled { background-color: #064e3b !important; color: #6b7280 !important; opacity: 0.6; cursor: not-allowed; }
     .btn-stok-keluar { background-color: #ef4444; color: white; }
+    .btn-stok-keluar:disabled { background-color: #7f1d1d !important; color: #6b7280 !important; opacity: 0.6; cursor: not-allowed; }
     .photo-box { border: 2px dashed #dc2626; border-radius: 10px; padding: 25px; text-align: center; background-color: #111827; }
   </style>
 </head>
@@ -72,12 +74,12 @@
       <div class="mt-4">
         <div class="row g-3">
           <div class="col-6">
-            <button onclick="bukaFormTrans('MASUK')" class="btn btn-menu btn-stok-masuk w-100">
+            <button id="btnStokMasukMenu" onclick="bukaFormTrans('MASUK')" class="btn btn-menu btn-stok-masuk w-100" disabled>
               <i class="fas fa-box-open d-block mb-2 fa-lg"></i> STOK MASUK
             </button>
           </div>
           <div class="col-6">
-            <button onclick="bukaFormTrans('KELUAR')" class="btn btn-menu btn-stok-keluar w-100">
+            <button id="btnStokKeluarMenu" onclick="bukaFormTrans('KELUAR')" class="btn btn-menu btn-stok-keluar w-100" disabled>
               <i class="fas fa-shipping-fast d-block mb-2 fa-lg"></i> STOK KELUAR
             </button>
           </div>
@@ -122,12 +124,10 @@
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
-    // PASTIKAN URL BERIKUT ADALAH URL LIVE DEPLOYMENT WEB APP TERBARU ANDA
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxONH3k6KSfAbeRQWc_hTNewsneDb2LAS47ZrGC56S4pB_1wrEKzpEBx-oLkp18_jBwbQ/exec";
 
     let DAFTAR_OUTLET_DARI_SHEET = [];
     
-    // Variabel Global untuk Menampung Hasil Validasi GPS & Foto Base64
     let NAMA_PETUGAS_LOGGED_IN = "";
     let CABANG_TERVERIFIKASI = "Belum Diketahui";
     let KOORDINAT_TEREKAM = "0,0";
@@ -162,6 +162,9 @@
           document.getElementById('namaPetugasAktif').innerText = NAMA_PETUGAS_LOGGED_IN;
           document.getElementById('halamanLogin').style.display = 'none';
           document.getElementById('halamanDashboard').style.display = 'block';
+
+          // Kunci tombol menu utama saat dashboard pertama kali terbuka (menunggu GPS selesai membaca)
+          setStatusTombolMenu(true);
 
           DAFTAR_OUTLET_DARI_SHEET = respon.cabangList || [];
           prosesValidasiLokasiKerja();
@@ -209,18 +212,24 @@
             if (cabangDitemukan) {
               CABANG_TERVERIFIKASI = cabangDitemukan;
               tampilkanStatusGPS("sukses", `GPS TERVERIFIKASI AKTIF (${CABANG_TERVERIFIKASI})`);
+              setStatusTombolMenu(false); // GPS Sukses -> Tombol Aktif otomatis
             } else {
               CABANG_TERVERIFIKASI = "Luar Radius";
               tampilkanStatusGPS("luar_radius", "LOKASI DI LUAR RADIUS OUTLET RESMI");
+              setStatusTombolMenu(true); // Luar Radius -> Tombol Terkunci!
             }
           },
           function(error) {
+            CABANG_TERVERIFIKASI = "GPS Lemah";
             tampilkanStatusGPS("eror", "GPS LEMAH / IZIN LOKASI DITOLAK");
+            setStatusTombolMenu(true); // GPS Gagal -> Tombol Terkunci!
           },
           { enableHighAccuracy: true, timeout: 8000 }
         );
       } else {
+        CABANG_TERVERIFIKASI = "Tidak Didukung";
         tampilkanStatusGPS("eror", "BROWSER TIDAK MENDUKUNG GPS");
+        setStatusTombolMenu(true);
       }
     }
 
@@ -259,9 +268,29 @@
       }
     }
 
+    // Fungsi Pengendali Status Tombol Masuk & Keluar
+    function setStatusTombolMenu(isLocked) {
+      document.getElementById('btnStokMasukMenu').disabled = isLocked;
+      document.getElementById('btnStokKeluarMenu').disabled = isLocked;
+      
+      // Jika dikunci kembali ke kondisi awal, sembunyikan area form yang sedang terbuka
+      if (isLocked) {
+        document.getElementById('areaFormTransaksi').classList.add('d-none');
+      }
+    }
+
     function bypassGpsMode() {
       CABANG_TERVERIFIKASI = "Bypass Darurat";
       tampilkanStatusGPS("sukses", `GPS DILEWATI (MODE DARURAT)`);
+      setStatusTombolMenu(false); // Mengaktifkan kembali tombol masuk/keluar barang
+      
+      Swal.fire({
+        title: 'Bypass Aktif',
+        text: 'Akses dibuka menggunakan laporan log darurat.',
+        icon: 'info',
+        timer: 1500,
+        showConfirmButton: false
+      });
     }
 
     function bukaFormTrans(tipe) {
@@ -430,6 +459,10 @@
           document.getElementById('textStatusFoto').innerText = "TAP TO CAPTURE PHOTO";
           document.getElementById('textStatusFoto').className = "small fw-bold text-uppercase text-danger";
           DATA_BASE64_FOTO = "";
+          
+          // Setelah berhasil kirim, kunci kembali tombol dan paksa re-verifikasi lokasi terupdate
+          setStatusTombolMenu(true);
+          prosesValidasiLokasiKerja();
         });
       })
       .catch((error) => {
