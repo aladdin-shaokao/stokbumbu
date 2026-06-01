@@ -33,7 +33,6 @@
 
     #kotakLiveScanner { width: 100%; max-width: 360px; margin: 10px auto; display: none; border: 3px solid #dfb15b; border-radius: 12px; overflow: hidden; background-color: #000; position: relative; }
     
-    /* Desain Baru Box Preview Fokus Gambar Saja */
     .product-preview-box { background-color: #111827; border: 2px solid #dfb15b; border-radius: 12px; padding: 15px; margin-top: 12px; text-align: center; display: none; }
     .product-preview-img { max-width: 100%; max-height: 220px; border-radius: 8px; border: 1px solid #374151; object-fit: contain; }
     .product-error-text { font-weight: 800; font-size: 14px; color: #f59e0b; margin-top: 5px; }
@@ -109,9 +108,10 @@
             
             <div id="kotakLiveScanner"></div>
 
+            <!-- Preview Gambar -->
             <div id="boxPreviewBarang" class="product-preview-box">
               <div class="small text-white-50 mb-2" style="font-size: 11px; letter-spacing: 1px;">KONFIRMASI FISIK BARANG:</div>
-              <img id="imgPreviewBarang" src="" alt="Preview Barang" class="product-preview-img">
+              <img id="imgPreviewBarang" src="" alt="Preview Barang" class="product-preview-img" crossorigin="anonymous" onerror="handleImageError()">
               <div id="textErrorBarang" class="product-error-text" style="display: none;"></div>
             </div>
           </div>
@@ -130,7 +130,7 @@
             </div>
           </div>
 
-          <button type="submit" class="btn btn-warning w-100 py-2.5 fw-bold text-uppercase" style="font-size: 16px; color: #111;">Kirim Laporan Stok</button>
+          <button type="submit" id="btnSubmitLaporan" class="btn btn-warning w-100 py-2.5 fw-bold text-uppercase" style="font-size: 16px; color: #111;">Kirim Laporan Stok</button>
         </form>
       </div>
     </div>
@@ -138,10 +138,9 @@
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
-    // Link deploy Web App terbaru Anda
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzg_wVqtM2pmKfrdjfBhl5bEVTrCXipKtteWWc4FJf5V_aHx84C-mObDnkdBfbKBB9TpA/exec";
+    // Link hasil deploy terbaru Anda
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxtmmz3hZzHJzXIJ3fjuRt1Y2HDRprDKpmMlg-fwiO6BzxoGmFCAn2Ac37s-6XgVQGBnA/exec";
 
-    // Variabel memori lokal penampung database dari Google Sheets
     let DATABASE_BARANG_SHEETS = {};
     let DAFTAR_OUTLET_DARI_SHEET = [];
     let NAMA_PETUGAS_LOGGED_IN = "";
@@ -182,7 +181,6 @@
 
           setStatusTombolMenu(true);
 
-          // MENYIMPAN DATABASE DATA_BARANG DARI GOOGLE SHEETS
           DATABASE_BARANG_SHEETS = respon.databaseBarang || {};
           DAFTAR_OUTLET_DARI_SHEET = respon.cabangList || [];
           prosesValidasiLokasiKerja();
@@ -365,20 +363,18 @@
 
           const keyBarcode = teksBarcode.trim();
 
-          // COCOKKAN HASIL REKAMAN SCAN DENGAN DATABASE DINAMIS GOOGLE SHEETS
           if (DATABASE_BARANG_SHEETS[keyBarcode]) {
-            imgPreview.src = DATABASE_BARANG_SHEETS[keyBarcode].foto;
-            imgPreview.style.display = 'inline-block';
             txtError.style.display = 'none';
+            imgPreview.style.display = 'inline-block';
+            // Paksa pembersihan cache gambar agar selalu ter-render segar di webview HP
+            imgPreview.src = DATABASE_BARANG_SHEETS[keyBarcode].foto + "?t=" + new Date().getTime();
           } else {
-            // Jika barcode baru/belum terdaftar di Google Sheets "DataBarang"
             imgPreview.style.display = 'none';
             txtError.innerText = "⚠️ BARCODE BARU / FOTO BELUM DIINPUT DI GOOGLE SHEETS";
             txtError.style.display = 'block';
           }
           
           boxPreview.style.display = 'block';
-
           Swal.fire({ title: 'Berhasil Scan!', text: 'Memuat gambar barang...', icon: 'success', timer: 1200, showConfirmButton: false });
         },
         function padaSinyalGagal(err) { }
@@ -386,6 +382,14 @@
         Swal.fire('Gagal Kamera', 'Pastikan izin akses kamera browser sudah diaktifkan.', 'error');
         matikanKameraScanner();
       });
+    }
+
+    function handleImageError() {
+      const imgPreview = document.getElementById('imgPreviewBarang');
+      const txtError = document.getElementById('textErrorBarang');
+      imgPreview.style.display = 'none';
+      txtError.innerText = "⚠️ GAGAL MEMUAT GAMBAR. Pastikan Link di Google Sheets Benar & diset 'Anyone with link'.";
+      txtError.style.display = 'block';
     }
 
     function matikanKameraScanner() {
@@ -414,7 +418,7 @@
           const img = new Image();
           img.onload = function() {
             const canvas = document.createElement('canvas');
-            const MAX_SIZE = 600;
+            const MAX_SIZE = 500; // Kompresi sedikit lebih kecil agar pengiriman ke Apps Script super kilat
             let w = img.width;
             let h = img.height;
             if (w > h) { if (w > MAX_SIZE) { h *= MAX_SIZE / w; w = MAX_SIZE; } } 
@@ -423,7 +427,7 @@
             canvas.width = w; canvas.height = h;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, w, h);
-            DATA_BASE64_FOTO = canvas.toDataURL('image/jpeg', 0.7);
+            DATA_BASE64_FOTO = canvas.toDataURL('image/jpeg', 0.6);
             
             document.getElementById('textStatusFoto').innerText = "✓ FOTO BERHASIL DIKONFIRMASI";
             document.getElementById('textStatusFoto').className = "small fw-bold text-success";
@@ -438,7 +442,15 @@
       e.preventDefault();
       matikanKameraScanner();
 
-      Swal.fire({ title: 'Menyimpan Transaksi...', text: 'Mengirim data ke database...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+      const btnSubmit = document.getElementById('btnSubmitLaporan');
+      btnSubmit.disabled = true;
+
+      Swal.fire({ 
+        title: 'Menyimpan Transaksi...', 
+        text: 'Sedang mengirim baris data log ke Google Sheets...', 
+        allowOutsideClick: false, 
+        didOpen: () => { Swal.showLoading(); } 
+      });
 
       const payload = {
         petugas: NAMA_PETUGAS_LOGGED_IN,
@@ -450,28 +462,60 @@
         koordinat: KOORDINAT_TEREKAM
       };
 
-      fetch(WEB_APP_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload)
-      })
-      .then(() => {
-        Swal.fire('Berhasil Simpan!', 'Laporan stok telah sukses dicatat di Sheets.', 'success').then(() => {
-          document.getElementById('formTransaksi').reset();
-          document.getElementById('areaFormTransaksi').classList.add('d-none');
-          document.getElementById('textStatusFoto').innerText = "TAP TO CAPTURE PHOTO";
-          document.getElementById('textStatusFoto').className = "small fw-bold text-uppercase text-danger";
-          document.getElementById('boxPreviewBarang').style.display = 'none';
-          DATA_BASE64_FOTO = "";
-          
-          setStatusTombolMenu(true);
-          prosesValidasiLokasiKerja();
-        });
-      })
-      .catch((error) => {
-        Swal.fire('Gagal Mengirim', 'Terjadi gangguan jaringan: ' + error.toString(), 'error');
-      });
+      // Taktik Kirim Native Form Data (Bypass Blokir CORS Browser Seluler saat POST data raksasa)
+      const formBypass = document.createElement('form');
+      formBypass.method = 'POST';
+      formBypass.action = WEB_APP_URL;
+      formBypass.target = 'hidden_iframe';
+
+      const inputPayload = document.createElement('input');
+      inputPayload.type = 'hidden';
+      inputPayload.name = 'contents'; 
+      
+      // Mengirimkan data via form target teks murni
+      formBypass.appendChild(inputPayload);
+      
+      // Buat iframe tersembunyi agar halaman tidak lompat berpindah saat submit selesai
+      let iframe = document.getElementById('hidden_iframe');
+      if (!iframe) {
+        iframe = document.createElement('iframe');
+        iframe.id = 'hidden_iframe';
+        iframe.name = 'hidden_iframe';
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+      }
+
+      document.body.appendChild(formBypass);
+
+      // Gunakan XMLHttpRequest Text untuk jaminan pengiriman lolos di semua device Android/iOS lama
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", WEB_APP_URL, true);
+      xhr.setRequestHeader("Content-Type", "text/plain;charset=utf-8");
+      
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+          // Status diisi bypass aman
+          btnSubmit.disabled = false;
+          Swal.fire('Berhasil Simpan!', 'Laporan stok telah sukses dicatat di Sheets.', 'success').then(() => {
+            document.getElementById('formTransaksi').reset();
+            document.getElementById('areaFormTransaksi').classList.add('d-none');
+            document.getElementById('textStatusFoto').innerText = "TAP TO CAPTURE PHOTO";
+            document.getElementById('textStatusFoto').className = "small fw-bold text-uppercase text-danger";
+            document.getElementById('boxPreviewBarang').style.display = 'none';
+            DATA_BASE64_FOTO = "";
+            
+            setStatusTombolMenu(true);
+            prosesValidasiLokasiKerja();
+          });
+        }
+      };
+
+      xhr.onerror = function(e) {
+        btnSubmit.disabled = false;
+        Swal.fire('Gagal Mengirim', 'Terjadi gangguan koneksi internet di lokasi.', 'error');
+      };
+
+      xhr.send(JSON.stringify(payload));
     }
   </script>
 </body>
