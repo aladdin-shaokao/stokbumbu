@@ -30,6 +30,9 @@
     .btn-stok-keluar { background-color: #ef4444; color: white; }
     .btn-stok-keluar:disabled { background-color: #7f1d1d !important; color: #6b7280 !important; opacity: 0.6; cursor: not-allowed; }
     .photo-box { border: 2px dashed #dc2626; border-radius: 10px; padding: 25px; text-align: center; background-color: #111827; }
+
+    /* Desain Kotak Scanner Live */
+    #kotakLiveScanner { width: 100%; max-width: 360px; margin: 10px auto; display: none; border: 3px solid #dfb15b; border-radius: 12px; overflow: hidden; background-color: #000; position: relative; }
   </style>
 </head>
 <body>
@@ -94,12 +97,13 @@
           <div class="mb-3">
             <label class="form-label small fw-bold text-aladdin-gold">SCAN BARCODE / QR BUMBU</label>
             <div class="input-group">
-              <input type="text" id="barcodeBumbu" class="form-control form-control-dark" placeholder="Ketuk tombol Kamera Scan..." required readonly>
-              <button class="btn btn-danger fw-bold" type="button" onclick="document.getElementById('fileInputBarcode').click()">
-                <i class="fas fa-camera me-1"></i> Kamera Scan
+              <input type="text" id="barcodeBumbu" class="form-control form-control-dark" placeholder="Menunggu Scan Kamera..." required readonly>
+              <button id="btnTriggerScanner" class="btn btn-danger fw-bold" type="button" onclick="toggleLiveScanner()">
+                <i class="fas fa-camera me-1"></i> Buka Kamera
               </button>
             </div>
-            <input type="file" id="fileInputBarcode" accept="image/*" capture="environment" style="display: none;" onchange="prosesDekodeBarcodeFile(this)">
+            <!-- Wadah Streaming Video Kamera -->
+            <div id="kotakLiveScanner"></div>
           </div>
 
           <div class="mb-3">
@@ -133,6 +137,9 @@
     let KOORDINAT_TEREKAM = "0,0";
     let JARAK_TERHITUNG = "0";
     let DATA_BASE64_FOTO = "";
+    
+    // Instance Global untuk Kendali Live Video Scanner
+    let html5QrScannerInstance = null;
 
     function eksekusiKoneksiJSONP() {
       const userVal = document.getElementById('username').value;
@@ -163,7 +170,6 @@
           document.getElementById('halamanLogin').style.display = 'none';
           document.getElementById('halamanDashboard').style.display = 'block';
 
-          // Kunci tombol menu utama saat dashboard pertama kali terbuka (menunggu GPS selesai membaca)
           setStatusTombolMenu(true);
 
           DAFTAR_OUTLET_DARI_SHEET = respon.cabangList || [];
@@ -212,17 +218,17 @@
             if (cabangDitemukan) {
               CABANG_TERVERIFIKASI = cabangDitemukan;
               tampilkanStatusGPS("sukses", `GPS TERVERIFIKASI AKTIF (${CABANG_TERVERIFIKASI})`);
-              setStatusTombolMenu(false); // GPS Sukses -> Tombol Aktif otomatis
+              setStatusTombolMenu(false);
             } else {
               CABANG_TERVERIFIKASI = "Luar Radius";
               tampilkanStatusGPS("luar_radius", "LOKASI DI LUAR RADIUS OUTLET RESMI");
-              setStatusTombolMenu(true); // Luar Radius -> Tombol Terkunci!
+              setStatusTombolMenu(true);
             }
           },
           function(error) {
             CABANG_TERVERIFIKASI = "GPS Lemah";
             tampilkanStatusGPS("eror", "GPS LEMAH / IZIN LOKASI DITOLAK");
-            setStatusTombolMenu(true); // GPS Gagal -> Tombol Terkunci!
+            setStatusTombolMenu(true);
           },
           { enableHighAccuracy: true, timeout: 8000 }
         );
@@ -268,13 +274,11 @@
       }
     }
 
-    // Fungsi Pengendali Status Tombol Masuk & Keluar
     function setStatusTombolMenu(isLocked) {
       document.getElementById('btnStokMasukMenu').disabled = isLocked;
       document.getElementById('btnStokKeluarMenu').disabled = isLocked;
-      
-      // Jika dikunci kembali ke kondisi awal, sembunyikan area form yang sedang terbuka
       if (isLocked) {
+        matikanKameraScanner();
         document.getElementById('areaFormTransaksi').classList.add('d-none');
       }
     }
@@ -282,11 +286,11 @@
     function bypassGpsMode() {
       CABANG_TERVERIFIKASI = "Bypass Darurat";
       tampilkanStatusGPS("sukses", `GPS DILEWATI (MODE DARURAT)`);
-      setStatusTombolMenu(false); // Mengaktifkan kembali tombol masuk/keluar barang
+      setStatusTombolMenu(false);
       
       Swal.fire({
-        title: 'Bypass Aktif',
-        text: 'Akses dibuka menggunakan laporan log darurat.',
+        title: 'Bypass Pembatasan',
+        text: 'Akses menu log stok darurat diaktifkan.',
         icon: 'info',
         timer: 1500,
         showConfirmButton: false
@@ -294,9 +298,13 @@
     }
 
     function bukaFormTrans(tipe) {
+      matikanKameraScanner();
       const areaForm = document.getElementById('areaFormTransaksi');
       const judul = document.getElementById('judulForm');
       const labelJumlah = document.getElementById('labelJumlah');
+      
+      document.getElementById('formTransaksi').reset();
+      document.getElementById('barcodeBumbu').value = "";
       
       document.getElementById('jenisTransaksi').value = tipe;
       areaForm.classList.remove('d-none');
@@ -313,77 +321,77 @@
       areaForm.scrollIntoView({ behavior: 'smooth' });
     }
 
-    function prosesDekodeBarcodeFile(input) {
-      if (!input.files || input.files.length === 0) return;
-      
-      Swal.fire({ 
-        title: 'Memproses Gambar...', 
-        text: 'Mengoptimalkan resolusi foto kamera...',
-        allowOutsideClick: false, 
-        didOpen: () => { Swal.showLoading(); } 
-      });
+    // FUNGSI INTI LIVE STREAM SCANNER BARCODE otomatis
+    function toggleLiveScanner() {
+      const scannerContainer = document.getElementById('kotakLiveScanner');
+      const btnTrigger = document.getElementById('btnTriggerScanner');
 
-      const fileGambar = input.files[0];
-      const reader = new FileReader();
+      // Jika scanner sedang aktif, maka tombol ini berfungsi untuk menutup kamera
+      if (html5QrScannerInstance && scannerContainer.style.display === 'block') {
+        matikanKameraScanner();
+        return;
+      }
 
-      reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-          const MAX_WIDTH = 800;
-          const MAX_HEIGHT = 800;
-          let width = img.width;
-          let height = img.height;
+      scannerContainer.style.display = 'block';
+      btnTrigger.innerHTML = `<i class="fas fa-times-circle me-1"></i> Tutup Kamera`;
+      btnTrigger.className = "btn btn-secondary fw-bold";
 
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height *= MAX_WIDTH / width;
-              width = MAX_WIDTH;
-            }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width *= MAX_HEIGHT / height;
-              height = MAX_HEIGHT;
-            }
-          }
+      if (!html5QrScannerInstance) {
+        html5QrScannerInstance = new Html5Qrcode("kotakLiveScanner");
+      }
 
-          const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-
-          canvas.toBlob(function(blob) {
-            const fileSiapScan = new File([blob], fileGambar.name, { type: "image/jpeg" });
-            const html5QrCode = new Html5Qrcode("barcodeBumbu");
-
-            html5QrCode.scanFile(fileSiapScan, true)
-              .then(teksBarcode => {
-                Swal.close();
-                document.getElementById('barcodeBumbu').value = teksBarcode;
-                
-                Swal.fire({ 
-                  title: 'Scan Berhasil!', 
-                  text: 'Kode Terbaca: ' + teksBarcode, 
-                  icon: 'success', 
-                  timer: 2000, 
-                  showConfirmButton: false 
-                });
-              })
-              .catch(err => {
-                Swal.close();
-                console.error("Detail Error Scan:", err);
-                Swal.fire(
-                  'Gagal Membaca', 
-                  'Pastikan posisi QR Code tegak lurus, fokus, dan tidak terlalu jauh dari kamera. Silakan coba foto ulang.', 
-                  'warning'
-                );
-                document.getElementById('barcodeBumbu').value = "";
-              });
-          }, 'image/jpeg', 0.8);
-        };
-        img.src = e.target.result;
+      const konfigurasiScanner = { 
+        fps: 15, 
+        qrbox: function(width, height) {
+          // Menyesuaikan ukuran area fokus scan bumbu di layar HP
+          return { width: Math.min(width * 0.75, 260), height: Math.min(height * 0.45, 160) };
+        }
       };
-      reader.readAsDataURL(fileGambar);
+
+      html5QrScannerInstance.start(
+        { facingMode: "environment" }, // Paksa menggunakan kamera belakang HP
+        konfigurasiScanner,
+        function padaSinyalSukses(teksBarcode) {
+          document.getElementById('barcodeBumbu').value = teksBarcode;
+          matikanKameraScanner(); // Otomatis matikan kamera setelah kode terbaca
+
+          Swal.fire({ 
+            title: 'Berhasil Scan!', 
+            text: 'Kode Terdeteksi: ' + teksBarcode, 
+            icon: 'success', 
+            timer: 1500, 
+            showConfirmButton: false 
+          });
+        },
+        function padaSinyalGagal(err) {
+          // Diabaikan agar sistem terus melacak video sampai menemukan posisi barcode yang pas
+        }
+      ).catch(err => {
+        console.error("Gagal Akses Kamera:", err);
+        Swal.fire('Gagal Kamera', 'Pastikan izin akses kamera browser sudah diaktifkan.', 'error');
+        matikanKameraScanner();
+      });
+    }
+
+    function matikanKameraScanner() {
+      const scannerContainer = document.getElementById('kotakLiveScanner');
+      const btnTrigger = document.getElementById('btnTriggerScanner');
+      
+      if(btnTrigger) {
+        btnTrigger.innerHTML = `<i class="fas fa-camera me-1"></i> Buka Kamera`;
+        btnTrigger.className = "btn btn-danger fw-bold";
+      }
+
+      if (html5QrScannerInstance) {
+        html5QrScannerInstance.stop().then(() => {
+          scannerContainer.style.display = 'none';
+        }).catch(err => {
+          console.warn("Info Penutupan Scanner:", err);
+          scannerContainer.style.display = 'none';
+        });
+      } else {
+        scannerContainer.style.display = 'none';
+      }
     }
 
     function fotoBerhasilDiambil(input) {
@@ -426,6 +434,7 @@
 
     function kirimDataTransaksi(e) {
       e.preventDefault();
+      matikanKameraScanner();
 
       Swal.fire({ 
         title: 'Menyimpan Transaksi...', 
@@ -460,7 +469,6 @@
           document.getElementById('textStatusFoto').className = "small fw-bold text-uppercase text-danger";
           DATA_BASE64_FOTO = "";
           
-          // Setelah berhasil kirim, kunci kembali tombol dan paksa re-verifikasi lokasi terupdate
           setStatusTombolMenu(true);
           prosesValidasiLokasiKerja();
         });
