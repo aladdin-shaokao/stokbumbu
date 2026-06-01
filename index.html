@@ -31,8 +31,12 @@
     .btn-stok-keluar:disabled { background-color: #7f1d1d !important; color: #6b7280 !important; opacity: 0.6; cursor: not-allowed; }
     .photo-box { border: 2px dashed #dc2626; border-radius: 10px; padding: 25px; text-align: center; background-color: #111827; }
 
-    /* Desain Kotak Scanner Live */
     #kotakLiveScanner { width: 100%; max-width: 360px; margin: 10px auto; display: none; border: 3px solid #dfb15b; border-radius: 12px; overflow: hidden; background-color: #000; position: relative; }
+    
+    /* Desain Box Preview Barang Setelah Scan */
+    .product-preview-box { background-color: #111827; border: 2px solid #dfb15b; border-radius: 12px; padding: 15px; margin-top: 12px; text-align: center; display: none; }
+    .product-preview-img { max-height: 150px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #374151; }
+    .product-preview-name { font-weight: 800; font-size: 16px; color: #dfb15b; text-transform: uppercase; letter-spacing: 0.5px; }
   </style>
 </head>
 <body>
@@ -102,8 +106,15 @@
                 <i class="fas fa-camera me-1"></i> Buka Kamera
               </button>
             </div>
-            <!-- Wadah Streaming Video Kamera -->
+            
             <div id="kotakLiveScanner"></div>
+
+            <!-- Wadah Tampilan Preview Nama & Gambar Barang -->
+            <div id="boxPreviewBarang" class="product-preview-box">
+              <div class="small text-white-50 mb-2" style="font-size: 11px; letter-spacing: 1px;">KONFIRMASI BARCODE TERDETEKSI:</div>
+              <img id="imgPreviewBarang" src="" alt="Preview Barang" class="product-preview-img">
+              <div id="namaPreviewBarang" class="product-preview-name">Nama Barang</div>
+            </div>
           </div>
 
           <div class="mb-3">
@@ -130,15 +141,28 @@
   <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxONH3k6KSfAbeRQWc_hTNewsneDb2LAS47ZrGC56S4pB_1wrEKzpEBx-oLkp18_jBwbQ/exec";
 
+    // DATABASE COCOK KODE BARCODE & FOTO BARANG (Silakan sesuaikan isi link & URL fotonya)
+    const DATABASE_BARANG = {
+      "https://q.me-qr.com/880v2": {
+        nama: "Bumbu Ayam Bakar Madu",
+        foto: "https://raw.githubusercontent.com/aladdin-shaokao/assets/main/bumbu-madu.jpg"
+      },
+      "https://q.me-qr.com/1guq5": {
+        nama: "Bumbu Kambing Guling Ala Aladdin",
+        foto: "https://raw.githubusercontent.com/aladdin-shaokao/assets/main/bumbu-kambing.jpg"
+      },
+      "https://q.me-qr.com/ygide": {
+        nama: "Bumbu Sate Ayam Mala Spicy",
+        foto: "https://raw.githubusercontent.com/aladdin-shaokao/assets/main/bumbu-mala.jpg"
+      }
+    };
+
     let DAFTAR_OUTLET_DARI_SHEET = [];
-    
     let NAMA_PETUGAS_LOGGED_IN = "";
     let CABANG_TERVERIFIKASI = "Belum Diketahui";
     let KOORDINAT_TEREKAM = "0,0";
     let JARAK_TERHITUNG = "0";
     let DATA_BASE64_FOTO = "";
-    
-    // Instance Global untuk Kendali Live Video Scanner
     let html5QrScannerInstance = null;
 
     function eksekusiKoneksiJSONP() {
@@ -305,6 +329,7 @@
       
       document.getElementById('formTransaksi').reset();
       document.getElementById('barcodeBumbu').value = "";
+      document.getElementById('boxPreviewBarang').style.display = 'none'; // Sembunyikan preview lama
       
       document.getElementById('jenisTransaksi').value = tipe;
       areaForm.classList.remove('d-none');
@@ -321,17 +346,16 @@
       areaForm.scrollIntoView({ behavior: 'smooth' });
     }
 
-    // FUNGSI INTI LIVE STREAM SCANNER BARCODE otomatis
     function toggleLiveScanner() {
       const scannerContainer = document.getElementById('kotakLiveScanner');
       const btnTrigger = document.getElementById('btnTriggerScanner');
 
-      // Jika scanner sedang aktif, maka tombol ini berfungsi untuk menutup kamera
       if (html5QrScannerInstance && scannerContainer.style.display === 'block') {
         matikanKameraScanner();
         return;
       }
 
+      document.getElementById('boxPreviewBarang').style.display = 'none'; 
       scannerContainer.style.display = 'block';
       btnTrigger.innerHTML = `<i class="fas fa-times-circle me-1"></i> Tutup Kamera`;
       btnTrigger.className = "btn btn-secondary fw-bold";
@@ -343,28 +367,49 @@
       const konfigurasiScanner = { 
         fps: 15, 
         qrbox: function(width, height) {
-          // Menyesuaikan ukuran area fokus scan bumbu di layar HP
           return { width: Math.min(width * 0.75, 260), height: Math.min(height * 0.45, 160) };
         }
       };
 
       html5QrScannerInstance.start(
-        { facingMode: "environment" }, // Paksa menggunakan kamera belakang HP
+        { facingMode: "environment" }, 
         konfigurasiScanner,
         function padaSinyalSukses(teksBarcode) {
           document.getElementById('barcodeBumbu').value = teksBarcode;
-          matikanKameraScanner(); // Otomatis matikan kamera setelah kode terbaca
+          matikanKameraScanner(); 
+
+          // LOGIKA UNTUK MENAMPILKAN GAMBAR & NAMA BARANG BERDASARKAN HASIL SCAN
+          const boxPreview = document.getElementById('boxPreviewBarang');
+          const imgPreview = document.getElementById('imgPreviewBarang');
+          const namaPreview = document.getElementById('namaPreviewBarang');
+
+          // Bersihkan spasi di ujung teks barcode
+          const keyBarcode = teksBarcode.trim();
+
+          if (DATABASE_BARANG[keyBarcode]) {
+            // Jika link terdaftar di database atas
+            imgPreview.src = DATABASE_BARANG[keyBarcode].foto;
+            namaPreview.innerText = DATABASE_BARANG[keyBarcode].nama;
+            namaPreview.className = "product-preview-name text-success";
+          } else {
+            // Jika link barcode baru / tidak dikenal
+            imgPreview.src = "https://raw.githubusercontent.com/aladdin-shaokao/assets/main/no-image.png"; 
+            namaPreview.innerText = "KODE BARCODE BARU / TIDAK DIKENAL";
+            namaPreview.className = "product-preview-name text-warning";
+          }
+          
+          boxPreview.style.display = 'block'; // Tampilkan kotak info barang
 
           Swal.fire({ 
             title: 'Berhasil Scan!', 
-            text: 'Kode Terdeteksi: ' + teksBarcode, 
+            text: 'Mencocokkan data barang...', 
             icon: 'success', 
-            timer: 1500, 
+            timer: 1200, 
             showConfirmButton: false 
           });
         },
         function padaSinyalGagal(err) {
-          // Diabaikan agar sistem terus melacak video sampai menemukan posisi barcode yang pas
+          // Terus mencari barcode
         }
       ).catch(err => {
         console.error("Gagal Akses Kamera:", err);
@@ -386,7 +431,6 @@
         html5QrScannerInstance.stop().then(() => {
           scannerContainer.style.display = 'none';
         }).catch(err => {
-          console.warn("Info Penutupan Scanner:", err);
           scannerContainer.style.display = 'none';
         });
       } else {
@@ -467,6 +511,7 @@
           document.getElementById('areaFormTransaksi').classList.add('d-none');
           document.getElementById('textStatusFoto').innerText = "TAP TO CAPTURE PHOTO";
           document.getElementById('textStatusFoto').className = "small fw-bold text-uppercase text-danger";
+          document.getElementById('boxPreviewBarang').style.display = 'none';
           DATA_BASE64_FOTO = "";
           
           setStatusTombolMenu(true);
