@@ -33,10 +33,10 @@
 
     #kotakLiveScanner { width: 100%; max-width: 360px; margin: 10px auto; display: none; border: 3px solid #dfb15b; border-radius: 12px; overflow: hidden; background-color: #000; position: relative; }
     
-    /* Desain Box Preview Barang Setelah Scan */
+    /* Desain Baru Box Preview Fokus Gambar Saja */
     .product-preview-box { background-color: #111827; border: 2px solid #dfb15b; border-radius: 12px; padding: 15px; margin-top: 12px; text-align: center; display: none; }
-    .product-preview-img { max-height: 150px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #374151; }
-    .product-preview-name { font-weight: 800; font-size: 16px; color: #dfb15b; text-transform: uppercase; letter-spacing: 0.5px; }
+    .product-preview-img { max-width: 100%; max-height: 220px; border-radius: 8px; border: 1px solid #374151; object-fit: contain; }
+    .product-error-text { font-weight: 800; font-size: 14px; color: #f59e0b; margin-top: 5px; }
   </style>
 </head>
 <body>
@@ -109,11 +109,10 @@
             
             <div id="kotakLiveScanner"></div>
 
-            <!-- Wadah Tampilan Preview Nama & Gambar Barang -->
             <div id="boxPreviewBarang" class="product-preview-box">
-              <div class="small text-white-50 mb-2" style="font-size: 11px; letter-spacing: 1px;">KONFIRMASI BARCODE TERDETEKSI:</div>
+              <div class="small text-white-50 mb-2" style="font-size: 11px; letter-spacing: 1px;">KONFIRMASI FISIK BARANG:</div>
               <img id="imgPreviewBarang" src="" alt="Preview Barang" class="product-preview-img">
-              <div id="namaPreviewBarang" class="product-preview-name">Nama Barang</div>
+              <div id="textErrorBarang" class="product-error-text" style="display: none;"></div>
             </div>
           </div>
 
@@ -139,24 +138,11 @@
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxONH3k6KSfAbeRQWc_hTNewsneDb2LAS47ZrGC56S4pB_1wrEKzpEBx-oLkp18_jBwbQ/exec";
+    // Link deploy Web App terbaru Anda
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzg_wVqtM2pmKfrdjfBhl5bEVTrCXipKtteWWc4FJf5V_aHx84C-mObDnkdBfbKBB9TpA/exec";
 
-    // DATABASE COCOK KODE BARCODE & FOTO BARANG (Silakan sesuaikan isi link & URL fotonya)
-    const DATABASE_BARANG = {
-      "https://q.me-qr.com/880v2": {
-        nama: "Bumbu Ayam Bakar Madu",
-        foto: "https://raw.githubusercontent.com/aladdin-shaokao/assets/main/bumbu-madu.jpg"
-      },
-      "https://q.me-qr.com/1guq5": {
-        nama: "Bumbu Kambing Guling Ala Aladdin",
-        foto: "https://raw.githubusercontent.com/aladdin-shaokao/assets/main/bumbu-kambing.jpg"
-      },
-      "https://q.me-qr.com/ygide": {
-        nama: "Bumbu Sate Ayam Mala Spicy",
-        foto: "https://raw.githubusercontent.com/aladdin-shaokao/assets/main/bumbu-mala.jpg"
-      }
-    };
-
+    // Variabel memori lokal penampung database dari Google Sheets
+    let DATABASE_BARANG_SHEETS = {};
     let DAFTAR_OUTLET_DARI_SHEET = [];
     let NAMA_PETUGAS_LOGGED_IN = "";
     let CABANG_TERVERIFIKASI = "Belum Diketahui";
@@ -196,6 +182,8 @@
 
           setStatusTombolMenu(true);
 
+          // MENYIMPAN DATABASE DATA_BARANG DARI GOOGLE SHEETS
+          DATABASE_BARANG_SHEETS = respon.databaseBarang || {};
           DAFTAR_OUTLET_DARI_SHEET = respon.cabangList || [];
           prosesValidasiLokasiKerja();
         } else {
@@ -311,14 +299,7 @@
       CABANG_TERVERIFIKASI = "Bypass Darurat";
       tampilkanStatusGPS("sukses", `GPS DILEWATI (MODE DARURAT)`);
       setStatusTombolMenu(false);
-      
-      Swal.fire({
-        title: 'Bypass Pembatasan',
-        text: 'Akses menu log stok darurat diaktifkan.',
-        icon: 'info',
-        timer: 1500,
-        showConfirmButton: false
-      });
+      Swal.fire({ title: 'Bypass Pembatasan', text: 'Akses menu log stok darurat diaktifkan.', icon: 'info', timer: 1500, showConfirmButton: false });
     }
 
     function bukaFormTrans(tipe) {
@@ -329,7 +310,7 @@
       
       document.getElementById('formTransaksi').reset();
       document.getElementById('barcodeBumbu').value = "";
-      document.getElementById('boxPreviewBarang').style.display = 'none'; // Sembunyikan preview lama
+      document.getElementById('boxPreviewBarang').style.display = 'none'; 
       
       document.getElementById('jenisTransaksi').value = tipe;
       areaForm.classList.remove('d-none');
@@ -378,41 +359,30 @@
           document.getElementById('barcodeBumbu').value = teksBarcode;
           matikanKameraScanner(); 
 
-          // LOGIKA UNTUK MENAMPILKAN GAMBAR & NAMA BARANG BERDASARKAN HASIL SCAN
           const boxPreview = document.getElementById('boxPreviewBarang');
           const imgPreview = document.getElementById('imgPreviewBarang');
-          const namaPreview = document.getElementById('namaPreviewBarang');
+          const txtError = document.getElementById('textErrorBarang');
 
-          // Bersihkan spasi di ujung teks barcode
           const keyBarcode = teksBarcode.trim();
 
-          if (DATABASE_BARANG[keyBarcode]) {
-            // Jika link terdaftar di database atas
-            imgPreview.src = DATABASE_BARANG[keyBarcode].foto;
-            namaPreview.innerText = DATABASE_BARANG[keyBarcode].nama;
-            namaPreview.className = "product-preview-name text-success";
+          // COCOKKAN HASIL REKAMAN SCAN DENGAN DATABASE DINAMIS GOOGLE SHEETS
+          if (DATABASE_BARANG_SHEETS[keyBarcode]) {
+            imgPreview.src = DATABASE_BARANG_SHEETS[keyBarcode].foto;
+            imgPreview.style.display = 'inline-block';
+            txtError.style.display = 'none';
           } else {
-            // Jika link barcode baru / tidak dikenal
-            imgPreview.src = "https://raw.githubusercontent.com/aladdin-shaokao/assets/main/no-image.png"; 
-            namaPreview.innerText = "KODE BARCODE BARU / TIDAK DIKENAL";
-            namaPreview.className = "product-preview-name text-warning";
+            // Jika barcode baru/belum terdaftar di Google Sheets "DataBarang"
+            imgPreview.style.display = 'none';
+            txtError.innerText = "⚠️ BARCODE BARU / FOTO BELUM DIINPUT DI GOOGLE SHEETS";
+            txtError.style.display = 'block';
           }
           
-          boxPreview.style.display = 'block'; // Tampilkan kotak info barang
+          boxPreview.style.display = 'block';
 
-          Swal.fire({ 
-            title: 'Berhasil Scan!', 
-            text: 'Mencocokkan data barang...', 
-            icon: 'success', 
-            timer: 1200, 
-            showConfirmButton: false 
-          });
+          Swal.fire({ title: 'Berhasil Scan!', text: 'Memuat gambar barang...', icon: 'success', timer: 1200, showConfirmButton: false });
         },
-        function padaSinyalGagal(err) {
-          // Terus mencari barcode
-        }
+        function padaSinyalGagal(err) { }
       ).catch(err => {
-        console.error("Gagal Akses Kamera:", err);
         Swal.fire('Gagal Kamera', 'Pastikan izin akses kamera browser sudah diaktifkan.', 'error');
         matikanKameraScanner();
       });
@@ -421,18 +391,12 @@
     function matikanKameraScanner() {
       const scannerContainer = document.getElementById('kotakLiveScanner');
       const btnTrigger = document.getElementById('btnTriggerScanner');
-      
       if(btnTrigger) {
         btnTrigger.innerHTML = `<i class="fas fa-camera me-1"></i> Buka Kamera`;
         btnTrigger.className = "btn btn-danger fw-bold";
       }
-
       if (html5QrScannerInstance) {
-        html5QrScannerInstance.stop().then(() => {
-          scannerContainer.style.display = 'none';
-        }).catch(err => {
-          scannerContainer.style.display = 'none';
-        });
+        html5QrScannerInstance.stop().then(() => { scannerContainer.style.display = 'none'; }).catch(err => { scannerContainer.style.display = 'none'; });
       } else {
         scannerContainer.style.display = 'none';
       }
@@ -453,18 +417,12 @@
             const MAX_SIZE = 600;
             let w = img.width;
             let h = img.height;
+            if (w > h) { if (w > MAX_SIZE) { h *= MAX_SIZE / w; w = MAX_SIZE; } } 
+            else { if (h > MAX_SIZE) { w *= MAX_SIZE / h; h = MAX_SIZE; } }
             
-            if (w > h) {
-              if (w > MAX_SIZE) { h *= MAX_SIZE / w; w = MAX_SIZE; }
-            } else {
-              if (h > MAX_SIZE) { w *= MAX_SIZE / h; h = MAX_SIZE; }
-            }
-            
-            canvas.width = w;
-            canvas.height = h;
+            canvas.width = w; canvas.height = h;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, w, h);
-            
             DATA_BASE64_FOTO = canvas.toDataURL('image/jpeg', 0.7);
             
             document.getElementById('textStatusFoto').innerText = "✓ FOTO BERHASIL DIKONFIRMASI";
@@ -480,12 +438,7 @@
       e.preventDefault();
       matikanKameraScanner();
 
-      Swal.fire({ 
-        title: 'Menyimpan Transaksi...', 
-        text: 'Mengirim baris log lengkap ke database...', 
-        allowOutsideClick: false, 
-        didOpen: () => { Swal.showLoading(); } 
-      });
+      Swal.fire({ title: 'Menyimpan Transaksi...', text: 'Mengirim data ke database...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
       const payload = {
         petugas: NAMA_PETUGAS_LOGGED_IN,
@@ -500,9 +453,7 @@
       fetch(WEB_APP_URL, {
         method: "POST",
         mode: "no-cors",
-        headers: {
-          "Content-Type": "text/plain;charset=utf-8"
-        },
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify(payload)
       })
       .then(() => {
@@ -519,7 +470,6 @@
         });
       })
       .catch((error) => {
-        console.error("Gagal Transaksi POST:", error);
         Swal.fire('Gagal Mengirim', 'Terjadi gangguan jaringan: ' + error.toString(), 'error');
       });
     }
