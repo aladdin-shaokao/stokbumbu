@@ -366,7 +366,6 @@
           if (DATABASE_BARANG_SHEETS[keyBarcode]) {
             txtError.style.display = 'none';
             imgPreview.style.display = 'inline-block';
-            // Paksa pembersihan cache gambar agar selalu ter-render segar di webview HP
             imgPreview.src = DATABASE_BARANG_SHEETS[keyBarcode].foto + "?t=" + new Date().getTime();
           } else {
             imgPreview.style.display = 'none';
@@ -418,7 +417,7 @@
           const img = new Image();
           img.onload = function() {
             const canvas = document.createElement('canvas');
-            const MAX_SIZE = 500; // Kompresi sedikit lebih kecil agar pengiriman ke Apps Script super kilat
+            const MAX_SIZE = 500; 
             let w = img.width;
             let h = img.height;
             if (w > h) { if (w > MAX_SIZE) { h *= MAX_SIZE / w; w = MAX_SIZE; } } 
@@ -439,11 +438,13 @@
     }
 
     function kirimDataTransaksi(e) {
-      e.preventDefault();
+      if (e && e.preventDefault) { e.preventDefault(); }
+      else { window.event.returnValue = false; }
+
       matikanKameraScanner();
 
       const btnSubmit = document.getElementById('btnSubmitLaporan');
-      btnSubmit.disabled = true;
+      if (btnSubmit) { btnSubmit.disabled = true; }
 
       Swal.fire({ 
         title: 'Menyimpan Transaksi...', 
@@ -453,69 +454,46 @@
       });
 
       const payload = {
-        petugas: NAMA_PETUGAS_LOGGED_IN,
-        cabang: CABANG_TERVERIFIKASI,
+        petugas: NAMA_PETUGAS_LOGGED_IN || "Petugas Aladdin",
+        cabang: CABANG_TERVERIFIKASI || "Belum Diketahui",
         jenisStok: document.getElementById('jenisTransaksi').value,
         barcode: document.getElementById('barcodeBumbu').value,
         jumlah: parseInt(document.getElementById('jumlahBumbu').value) || 0,
-        fotoBase64: DATA_BASE64_FOTO,
-        koordinat: KOORDINAT_TEREKAM
+        fotoBase64: DATA_BASE64_FOTO || "",
+        koordinat: KOORDINAT_TEREKAM || "0,0"
       };
 
-      // Taktik Kirim Native Form Data (Bypass Blokir CORS Browser Seluler saat POST data raksasa)
-      const formBypass = document.createElement('form');
-      formBypass.method = 'POST';
-      formBypass.action = WEB_APP_URL;
-      formBypass.target = 'hidden_iframe';
-
-      const inputPayload = document.createElement('input');
-      inputPayload.type = 'hidden';
-      inputPayload.name = 'contents'; 
-      
-      // Mengirimkan data via form target teks murni
-      formBypass.appendChild(inputPayload);
-      
-      // Buat iframe tersembunyi agar halaman tidak lompat berpindah saat submit selesai
-      let iframe = document.getElementById('hidden_iframe');
-      if (!iframe) {
-        iframe = document.createElement('iframe');
-        iframe.id = 'hidden_iframe';
-        iframe.name = 'hidden_iframe';
-        iframe.style.display = 'none';
-        document.body.appendChild(iframe);
-      }
-
-      document.body.appendChild(formBypass);
-
-      // Gunakan XMLHttpRequest Text untuk jaminan pengiriman lolos di semua device Android/iOS lama
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", WEB_APP_URL, true);
-      xhr.setRequestHeader("Content-Type", "text/plain;charset=utf-8");
-      
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4) {
-          // Status diisi bypass aman
-          btnSubmit.disabled = false;
-          Swal.fire('Berhasil Simpan!', 'Laporan stok telah sukses dicatat di Sheets.', 'success').then(() => {
-            document.getElementById('formTransaksi').reset();
-            document.getElementById('areaFormTransaksi').classList.add('d-none');
-            document.getElementById('textStatusFoto').innerText = "TAP TO CAPTURE PHOTO";
-            document.getElementById('textStatusFoto').className = "small fw-bold text-uppercase text-danger";
-            document.getElementById('boxPreviewBarang').style.display = 'none';
-            DATA_BASE64_FOTO = "";
-            
-            setStatusTombolMenu(true);
-            prosesValidasiLokasiKerja();
-          });
-        }
-      };
-
-      xhr.onerror = function(e) {
-        btnSubmit.disabled = false;
-        Swal.fire('Gagal Mengirim', 'Terjadi gangguan koneksi internet di lokasi.', 'error');
-      };
-
-      xhr.send(JSON.stringify(payload));
+      fetch(WEB_APP_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8"
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(function() {
+        if (btnSubmit) { btnSubmit.disabled = false; }
+        
+        Swal.fire({
+          title: 'Berhasil Simpan!',
+          text: 'Laporan stok telah sukses dicatat di Sheets.',
+          icon: 'success'
+        }).then(() => {
+          document.getElementById('formTransaksi').reset();
+          document.getElementById('areaFormTransaksi').classList.add('d-none');
+          document.getElementById('textStatusFoto').innerText = "TAP TO CAPTURE PHOTO";
+          document.getElementById('textStatusFoto').className = "small fw-bold text-uppercase text-danger";
+          document.getElementById('boxPreviewBarang').style.display = 'none';
+          DATA_BASE64_FOTO = "";
+          
+          setStatusTombolMenu(true);
+          prosesValidasiLokasiKerja();
+        });
+      })
+      .catch(function(error) {
+        if (btnSubmit) { btnSubmit.disabled = false; }
+        Swal.fire('Gagal Mengirim', 'Terjadi gangguan koneksi internet atau server sibuk. Silakan coba lagi.', 'error');
+      });
     }
   </script>
 </body>
