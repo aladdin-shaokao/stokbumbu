@@ -12,9 +12,9 @@
 
   <style>
     body { background-color: #0b0f17; font-family: Arial, sans-serif; color: #f3f4f6; margin: 0; padding: 0; }
-    .logo-container { text-align: center; margin-top: 0px; margin-bottom: -30px; }
-    .logo-img { max-height: 240px; width: 85%; max-width: 250px; object-fit: contain; display: block; margin: 0 auto; }
-    .card-custom { max-width: 100%; width: 420px; margin: 20px auto; border-radius: 16px; background-color: #1f2937; border: 1px solid #374151; box-shadow: 0 12px 30px rgba(0,0,0,0.5); overflow: hidden; }
+    .logo-container { text-align: center; margin-top: 20px; margin-bottom: -10px; }
+    .logo-img { max-height: 200px; width: 80%; max-width: 250px; object-fit: contain; display: block; margin: 0 auto; }
+    .card-custom { max-width: 100%; width: 420px; margin: 0 auto 20px auto; border-radius: 16px; background-color: #1f2937; border: 1px solid #374151; box-shadow: 0 12px 30px rgba(0,0,0,0.5); overflow: hidden; }
     .card-header-brand { background: linear-gradient(135deg, #dc2626, #991b1b); padding: 24px; text-align: center; border-bottom: 1px solid #374151; }
     .brand-logo { font-size: 24px; font-weight: 800; letter-spacing: 1.5px; color: #ffffff; }
     .text-aladdin-gold { color: #dfb15b !important; }
@@ -24,12 +24,16 @@
     .btn-danger-custom:hover { background-color: #b91c1c; }
     
     .header-dashboard { background: linear-gradient(135deg, #dc2626, #991b1b); padding: 20px; border-bottom: 3px solid #dfb15b; }
-    .btn-menu { padding: 18px; font-weight: 800; font-size: 16px; border-radius: 12px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.3s; }
+    .btn-menu { padding: 18px; font-weight: 800; font-size: 15px; border-radius: 12px; border: 2px solid transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.2s; opacity: 0.4; }
     .btn-stok-masuk { background-color: #10b981; color: white; }
     .btn-stok-keluar { background-color: #ef4444; color: white; }
-    .photo-box { border: 2px dashed #dc2626; border-radius: 10px; padding: 25px; text-align: center; background-color: #111827; }
+    .btn-stok-awal { background-color: #3b82f6; color: white; }
+    .btn-stok-fisik { background-color: #06b6d4; color: white; }
     
-    /* Style Khusus Live Scanner */
+    /* Efek Tombol Navigasi Aktif */
+    .btn-menu.active-btn { opacity: 1 !important; border-color: #ffffff !important; box-shadow: 0 6px 15px rgba(255,255,255,0.2); transform: scale(1.02); }
+    
+    .photo-box { border: 2px dashed #dc2626; border-radius: 10px; padding: 25px; text-align: center; background-color: #111827; }
     #kotakLiveScanner { width: 100%; max-width: 380px; margin: 12px auto; display: none; border: 3px solid #dfb15b; border-radius: 12px; overflow: hidden; background-color: #000; }
     .product-preview-box { background-color: #111827; border: 2px solid #dfb15b; border-radius: 12px; padding: 15px; margin-top: 12px; text-align: center; display: none; }
     .product-preview-img { max-width: 100%; max-height: 220px; border-radius: 8px; border: 1px solid #374151; object-fit: contain; }
@@ -38,9 +42,9 @@
 <body>
 
   <div id="halamanLogin" class="container px-3">
-   <div class="logo-container">
-  <img src="logo.png" alt="Aladdin Logo" class="logo-img">
-</div>
+    <div class="logo-container">
+      <img src="logo.png" alt="Aladdin Logo" class="logo-img">
+    </div>
     <div class="card card-custom">
       <div class="card-header-brand">
         <div class="brand-logo">STOK BUMBU</div>
@@ -73,16 +77,30 @@
         </div>
       </div>
 
+      <!-- SISTEM MENU MENGGUNAKAN GRID BUTTON SEJAJAR -->
       <div class="mt-4" id="menuSistem" style="display: none;">
-        <div class="row g-3">
+        <div class="row g-2">
+          <!-- Menu Harian Umum -->
           <div class="col-6">
             <button id="btnStokMasukMenu" onclick="bukaFormTrans('MASUK')" class="btn btn-menu btn-stok-masuk w-100">
-              <i class="fas fa-box-open d-block mb-2 fa-lg"></i> STOK MASUK
+              <i class="fas fa-box-open d-block mb-1 fa-lg"></i> STOK MASUK
             </button>
           </div>
           <div class="col-6">
             <button id="btnStokKeluarMenu" onclick="bukaFormTrans('KELUAR')" class="btn btn-menu btn-stok-keluar w-100">
-              <i class="fas fa-shipping-fast d-block mb-2 fa-lg"></i> STOK KELUAR
+              <i class="fas fa-shipping-fast d-block mb-1 fa-lg"></i> STOK KELUAR
+            </button>
+          </div>
+          
+          <!-- Menu Khusus Admin Opname (Sembunyi secara default) -->
+          <div class="col-6" id="wrapperStokAwal" style="display: none;">
+            <button id="btnStokAwalMenu" onclick="bukaFormTrans('STOK AWAL')" class="btn btn-menu btn-stok-awal w-100">
+              <i class="fas fa-history d-block mb-1 fa-lg"></i> STOK AWAL
+            </button>
+          </div>
+          <div class="col-6" id="wrapperStokFisik" style="display: none;">
+            <button id="btnStokFisikMenu" onclick="bukaFormTrans('STOK FISIK')" class="btn btn-menu btn-stok-fisik w-100">
+              <i class="fas fa-calculator d-block mb-1 fa-lg"></i> STOK FISIK
             </button>
           </div>
         </div>
@@ -140,6 +158,7 @@
     let DATA_BASE64_FOTO = "";
     let DATABASE_BARANG_LOCAL = {};
     let objLiveScannerInstance = null;
+    let IS_ADMIN_OPNAME = false;
 
     // --- LOGIN ENGINE ---
     function eksekusiKoneksiJSONP() {
@@ -152,6 +171,13 @@
       }
 
       Swal.fire({ title: 'Memeriksa Akses...', text: 'Menghubungkan ke server pusat...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+      // Cek hak akses lokal sebelum menembak ke server cloud
+      if (user.toLowerCase() === "admin" && pass === "adminaladdin123") {
+        IS_ADMIN_OPNAME = true;
+      } else {
+        IS_ADMIN_OPNAME = false;
+      }
 
       const scriptBypass = document.createElement('script');
       scriptBypass.src = `${WEB_APP_URL}?action=login&username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}&callback=responLoginPusat`;
@@ -168,6 +194,18 @@
         document.getElementById('halamanLogin').style.display = 'none';
         document.getElementById('halamanDashboard').style.display = 'block';
         
+        // Logika Menampilkan Tombol Tambahan Jika Sesuai Otoritas
+        const wrapperAwal = document.getElementById('wrapperStokAwal');
+        const wrapperFisik = document.getElementById('wrapperStokFisik');
+        if (IS_ADMIN_OPNAME) {
+          wrapperAwal.style.display = 'block';
+          wrapperFisik.style.display = 'block';
+          Swal.fire({ title: 'Mode Opname Aktif', text: 'Selamat datang, fitur kontrol stok mingguan terbuka.', icon: 'info', timer: 2000, showConfirmButton: false });
+        } else {
+          wrapperAwal.style.display = 'none';
+          wrapperFisik.style.display = 'none';
+        }
+
         // Jalankan Validasi Koordinat GPS Asli Lintas Cabang (PIK 1 vs Serpong)
         prosesHitungGPSFisik(res.cabangList);
       } else {
@@ -175,7 +213,7 @@
       }
     }
 
-    // --- ENGINE DETEKSI GPS AKTUAL (ANTI SALAH BACA CABANG) ---
+    // --- ENGINE DETEKSI GPS AKTUAL ---
     function prosesHitungGPSFisik(cabangList) {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -185,7 +223,7 @@
             KOORDINAT_TEREKAM = latUser + "," + lngUser;
 
             if(!cabangList || cabangList.length === 0) {
-              CABANG_TERVERIFIKASI = "PIK 1"; // Fallback aman
+              CABANG_TERVERIFIKASI = "PIK 1";
               kunciStatusSuksesGPS("Cabang: PIK 1 (Default)");
               return;
             }
@@ -193,9 +231,8 @@
             let cabangTerdekat = "";
             let jarakTerkecil = Infinity;
 
-            // Rumus Haversine menentukan cabang terdekat dari posisi HP real-time
             cabangList.forEach(cb => {
-              const R = 6371e3; // radius bumi dalam meter
+              const R = 6371e3;
               const phi1 = latUser * Math.PI/180;
               const phi2 = cb.lat * Math.PI/180;
               const deltaPhi = (cb.lat - latUser) * Math.PI/180;
@@ -249,18 +286,16 @@
       kunciStatusSuksesGPS("Cabang Dikunci Manual: PIK 1");
     }
 
-    // --- ENGINE LIVE CAMERA SCANNER (BUKAN JEPRET FOTO MANUAL) ---
+    // --- ENGINE LIVE CAMERA SCANNER ---
     function toggleLiveScanner() {
       const areaVideo = document.getElementById('kotakLiveScanner');
       const btn = document.getElementById('btnTriggerScanner');
 
-      // Jika scanner sedang jalan, matikan
       if (objLiveScannerInstance) {
         matikanKameraLive();
         return;
       }
 
-      // Jika scanner belum jalan, hidupkan stream video kamera belakang
       areaVideo.style.display = 'block';
       btn.innerHTML = `<i class="fas fa-stop me-1"></i> Matikan Kamera`;
       btn.className = "btn btn-dark fw-bold";
@@ -272,7 +307,6 @@
         function onScanSuccess(decodedText) {
           document.getElementById('barcodeBumbu').value = decodedText;
           
-          // Cari preview gambar bumbu
           const boxPreview = document.getElementById('previewBarangBox');
           const imgPreview = document.getElementById('imgPreviewBarang');
           if (DATABASE_BARANG_LOCAL[decodedText] && DATABASE_BARANG_LOCAL[decodedText].foto) {
@@ -285,9 +319,7 @@
           Swal.fire({ title: 'Terbaca!', icon: 'success', timer: 800, showConfirmButton: false });
           matikanKameraLive();
         },
-        function onScanError(err) {
-          // Abaikan log error scanning konstan saat kamera mendeteksi frame kosong
-        }
+        function onScanError(err) { }
       ).catch(err => {
         Swal.fire('Kamera Gagal', 'Pastikan izin akses kamera browser sudah diperbolehkan.', 'error');
         matikanKameraLive();
@@ -302,33 +334,56 @@
         objLiveScannerInstance.stop().then(() => {
           objLiveScannerInstance = null;
           areaVideo.style.display = 'none';
-          btn.innerHTML = `<i class="fas fa-camera me-1"></i> Mulai Scan`;
+          btn.innerHTML = `<i class="fas fa-qrcode me-1"></i> Mulai Scan`;
           btn.className = "btn btn-danger fw-bold";
         }).catch(() => {
           objLiveScannerInstance = null;
           areaVideo.style.display = 'none';
-          btn.innerHTML = `<i class="fas fa-camera me-1"></i> Mulai Scan`;
+          btn.innerHTML = `<i class="fas fa-qrcode me-1"></i> Mulai Scan`;
           btn.className = "btn btn-danger fw-bold";
         });
       }
     }
 
+    // --- FUNGSI MENGATUR TOMBOL AKTIF & FORM TRANSAKSI ---
     function bukaFormTrans(tipe) {
       document.getElementById('jenisTransaksi').value = tipe;
       const area = document.getElementById('areaFormTransaksi');
       const judul = document.getElementById('judulForm');
       const lbl = document.getElementById('labelJumlah');
       
+      // Reset efek tombol aktif dari seluruh menu
+      document.getElementById('btnStokMasukMenu').classList.remove('active-btn');
+      document.getElementById('btnStokKeluarMenu').classList.remove('active-btn');
+      document.getElementById('btnStokAwalMenu').classList.remove('active-btn');
+      document.getElementById('btnStokFisikMenu').classList.remove('active-btn');
+
+      area.charCodeAt;
       area.classList.remove('d-none');
+      
+      // Pengkondisian Visual berdasarkan Tipe Tombol yang Diklik
       if(tipe === 'MASUK') {
+        document.getElementById('btnStokMasukMenu').classList.add('active-btn');
         judul.innerText = "Form Barang Masuk (Restock)";
         judul.className = "fw-bold text-success text-center mb-4";
         lbl.innerText = "JUMLAH STOK MASUK";
-      } else {
+      } else if (tipe === 'KELUAR') {
+        document.getElementById('btnStokKeluarMenu').classList.add('active-btn');
         judul.innerText = "Form Barang Keluar (Pemakaian)";
         judul.className = "fw-bold text-danger text-center mb-4";
         lbl.innerText = "JUMLAH STOK KELUAR";
+      } else if (tipe === 'STOK AWAL') {
+        document.getElementById('btnStokAwalMenu').classList.add('active-btn');
+        judul.innerText = "Form Stok Awal (Opname Mingguan)";
+        judul.className = "fw-bold text-primary text-center mb-4";
+        lbl.innerText = "SET JUMLAH STOK AWAL BARU";
+      } else if (tipe === 'STOK FISIK') {
+        document.getElementById('btnStokFisikMenu').classList.add('active-btn');
+        judul.innerText = "Form Hitung Stok Fisik Dapur";
+        judul.className = "fw-bold text-info text-center mb-4";
+        lbl.innerText = "JUMLAH FISIK DI DAPUR SAAT INI";
       }
+      
       area.scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -380,7 +435,6 @@
         suksesTransaksiAplikasi();
       })
       .catch(function() {
-        // Metode Injeksi Tag Cadangan jika terblokir jaringan lokal
         const scriptBackup = document.createElement('script');
         const dataEnc = encodeURIComponent(JSON.stringify(payload));
         scriptBackup.src = `${WEB_APP_URL}?action=kirimManual&data=${dataEnc}&callback=responKirimManual`;
@@ -398,6 +452,12 @@
         text: 'Transaksi bumbu berhasil dicatat di Google Sheets.',
         icon: 'success'
       }).then(() => {
+        // Reset Status Tombol Aktif
+        document.getElementById('btnStokMasukMenu').classList.remove('active-btn');
+        document.getElementById('btnStokKeluarMenu').classList.remove('active-btn');
+        document.getElementById('btnStokAwalMenu').classList.remove('active-btn');
+        document.getElementById('btnStokFisikMenu').classList.remove('active-btn');
+
         document.getElementById('formTransaksi').reset();
         document.getElementById('areaFormTransaksi').classList.add('d-none');
         document.getElementById('previewBarangBox').style.display = 'none';
