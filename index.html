@@ -28,6 +28,9 @@
     .btn-stok-masuk { background-color: #10b981; color: white; }
     .btn-stok-keluar { background-color: #ef4444; color: white; }
     .photo-box { border: 2px dashed #dc2626; border-radius: 10px; padding: 25px; text-align: center; background-color: #111827; }
+    
+    /* Style Khusus Live Scanner */
+    #kotakLiveScanner { width: 100%; max-width: 380px; margin: 12px auto; display: none; border: 3px solid #dfb15b; border-radius: 12px; overflow: hidden; background-color: #000; }
     .product-preview-box { background-color: #111827; border: 2px solid #dfb15b; border-radius: 12px; padding: 15px; margin-top: 12px; text-align: center; display: none; }
     .product-preview-img { max-width: 100%; max-height: 220px; border-radius: 8px; border: 1px solid #374151; object-fit: contain; }
   </style>
@@ -66,12 +69,12 @@
 
     <div class="container px-3 pb-5">
       <div class="mt-4">
-        <div id="gpsStatusBox" class="bg-success text-white p-3 rounded text-center fw-bold small">
-          <i class="fas fa-check-circle me-2"></i> LOKASI CABANG AKTIF
+        <div id="gpsStatusBox" class="bg-secondary text-white p-3 rounded text-center fw-bold small">
+          <i class="fas fa-spinner fa-spin me-2"></i> Memverifikasi Jarak Cabang Aktual...
         </div>
       </div>
 
-      <div class="mt-4" id="menuSistem">
+      <div class="mt-4" id="menuSistem" style="display: none;">
         <div class="row g-3">
           <div class="col-6">
             <button id="btnStokMasukMenu" onclick="bukaFormTrans('MASUK')" class="btn btn-menu btn-stok-masuk w-100">
@@ -92,14 +95,15 @@
           <input type="hidden" id="jenisTransaksi">
 
           <div class="mb-3">
-            <label class="form-label small fw-bold text-aladdin-gold">SCAN BARCODE / QR BUMBU</label>
+            <label class="form-label small fw-bold text-aladdin-gold">SCAN BARCODE / QR BUMBU (LIVE CAMERA)</label>
             <div class="input-group">
-              <input type="text" id="barcodeBumbu" class="form-control form-control-dark" placeholder="Ketuk tombol Kamera Scan..." required readonly>
-              <button class="btn btn-danger fw-bold" type="button" onclick="document.getElementById('fileInputBarcode').click()">
-                <i class="fas fa-camera me-1"></i> Kamera Scan
+              <input type="text" id="barcodeBumbu" class="form-control form-control-dark" placeholder="Ketuk Mulai Live Scan..." required readonly>
+              <button class="btn btn-danger fw-bold" type="button" id="btnTriggerScanner" onclick="toggleLiveScanner()">
+                <i class="fas fa-qrcode me-1"></i> Mulai Scan
               </button>
             </div>
-            <input type="file" id="fileInputBarcode" accept="image/*" capture="environment" style="display: none;" onchange="prosesDekodeBarcodeFile(this)">
+            
+            <div id="kotakLiveScanner"></div>
             
             <div id="previewBarangBox" class="product-preview-box">
               <div class="small text-white-50 mb-2">PREVIEW PRODUK BUMBU</div>
@@ -129,16 +133,16 @@
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
-    // MASUKKAN URL HASIL VERSIN NEW DEPLOY PUBLIC ANDA DI SINI:
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw2JjLlqZo1GET5llD5i4APwCgRCkIi9bH8E6LNGz_AF0pJWtbxehB_MenfOA-rPJgHoQ/exec"; 
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwPzN3lOQW1Fm787OaXbV9nZ-jT-R-U27xC60/exec"; 
 
     let NAMA_PETUGAS_LOGGED_IN = "";
-    let CABANG_TERVERIFIKASI = "Gudang Pusat";
+    let CABANG_TERVERIFIKASI = "Belum Diketahui";
     let KOORDINAT_TEREKAM = "0,0";
     let DATA_BASE64_FOTO = "";
     let DATABASE_BARANG_LOCAL = {};
+    let objLiveScannerInstance = null;
 
-    // --- LOGIN ENGINE (CROSS-DOMAIN COMPATIBLE VIA JSONP) ---
+    // --- LOGIN ENGINE ---
     function eksekusiKoneksiJSONP() {
       const user = document.getElementById('username').value;
       const pass = document.getElementById('password').value;
@@ -159,22 +163,154 @@
       Swal.close();
       if(res.status === "success") {
         NAMA_PETUGAS_LOGGED_IN = res.data.Nama_Lengkap;
-        CABANG_TERVERIFIKASI = res.data.Cabang || "Gudang Pusat";
         DATABASE_BARANG_LOCAL = res.databaseBarang || {};
 
         document.getElementById('namaPetugasAktif').innerText = NAMA_PETUGAS_LOGGED_IN;
-        document.getElementById('gpsStatusBox').innerHTML = `<i class="fas fa-map-marker-alt me-2"></i> Cabang: ${CABANG_TERVERIFIKASI}`;
         document.getElementById('halamanLogin').style.display = 'none';
         document.getElementById('halamanDashboard').style.display = 'block';
         
-        // Dapatkan koordinat browser asli jika tersedia
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(function(pos) {
-            KOORDINAT_TEREKAM = pos.coords.latitude + "," + pos.coords.longitude;
-          }, null, { timeout: 5000 });
-        }
+        // Jalankan Validasi Koordinat GPS Asli Lintas Cabang (PIK 1 vs Serpong)
+        prosesHitungGPSFisik(res.cabangList);
       } else {
         Swal.fire('Gagal Masuk', res.message, 'error');
+      }
+    }
+
+    // --- ENGINE DETEKSI GPS AKTUAL (ANTI SALAH BACA CABANG) ---
+    function prosesHitungGPSFisik(cabangList) {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          function(pos) {
+            const latUser = pos.coords.latitude;
+            const lngUser = pos.coords.longitude;
+            KOORDINAT_TEREKAM = latUser + "," + lngUser;
+
+            if(!cabangList || cabangList.length === 0) {
+              CABANG_TERVERIFIKASI = "PIK 1"; // Fallback aman
+              kunciStatusSuksesGPS("Cabang: PIK 1 (Default)");
+              return;
+            }
+
+            let cabangTerdekat = "";
+            let jarakTerkecil = Infinity;
+
+            // Rumus Haversine menentukan cabang terdekat dari posisi HP real-time
+            cabangList.forEach(cb => {
+              const R = 6371e3; // radius bumi dalam meter
+              const phi1 = latUser * Math.PI/180;
+              const phi2 = cb.lat * Math.PI/180;
+              const deltaPhi = (cb.lat - latUser) * Math.PI/180;
+              const deltaLambda = (cb.lng - lngUser) * Math.PI/180;
+
+              const a = Math.sin(deltaPhi/2) * Math.sin(deltaPhi/2) +
+                        Math.cos(phi1) * Math.cos(phi2) *
+                        Math.sin(deltaLambda/2) * Math.sin(deltaLambda/2);
+              const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+              const jarakMeter = R * c;
+
+              if(jarakMeter < jarakTerkecil) {
+                jarakTerkecil = jarakMeter;
+                cabangTerdekat = cb.nama;
+              }
+            });
+
+            CABANG_TERVERIFIKASI = cabangTerdekat;
+            kunciStatusSuksesGPS("Terdeteksi di Cabang: " + CABANG_TERVERIFIKASI);
+          },
+          function() {
+            kunciStatusGagalGPS();
+          },
+          { enableHighAccuracy: true, timeout: 8000 }
+        );
+      } else {
+        kunciStatusGagalGPS();
+      }
+    }
+
+    function kunciStatusSuksesGPS(pesan) {
+      const box = document.getElementById('gpsStatusBox');
+      box.className = "p-3 rounded text-center fw-bold small bg-success text-white";
+      box.innerHTML = `<i class="fas fa-check-circle me-2"></i> ${pesan}`;
+      document.getElementById('menuSistem').style.display = 'block';
+    }
+
+    function kunciStatusGagalGPS() {
+      const box = document.getElementById('gpsStatusBox');
+      box.className = "p-3 rounded fw-bold small bg-warning text-dark d-flex justify-content-between align-items-center";
+      box.innerHTML = `
+        <span><i class="fas fa-exclamation-triangle me-2"></i> GPS Lemah (Gagal Kunci Lokasi)</span>
+        <button type="button" onclick="bypassGPSPIK()" class="btn btn-sm btn-dark fw-bold px-2 py-1">Set PIK 1</button>
+      `;
+      document.getElementById('menuSistem').style.display = 'block';
+    }
+
+    function bypassGPSPIK() {
+      KOORDINAT_TEREKAM = "-6.0940,106.7437"; 
+      CABANG_TERVERIFIKASI = "PIK 1";
+      kunciStatusSuksesGPS("Cabang Dikunci Manual: PIK 1");
+    }
+
+    // --- ENGINE LIVE CAMERA SCANNER (BUKAN JEPRET FOTO MANUAL) ---
+    function toggleLiveScanner() {
+      const areaVideo = document.getElementById('kotakLiveScanner');
+      const btn = document.getElementById('btnTriggerScanner');
+
+      // Jika scanner sedang jalan, matikan
+      if (objLiveScannerInstance) {
+        matikanKameraLive();
+        return;
+      }
+
+      // Jika scanner belum jalan, hidupkan stream video kamera belakang
+      areaVideo.style.display = 'block';
+      btn.innerHTML = `<i class="fas fa-stop me-1"></i> Matikan Kamera`;
+      btn.className = "btn btn-dark fw-bold";
+
+      objLiveScannerInstance = new Html5Qrcode("kotakLiveScanner");
+      objLiveScannerInstance.start(
+        { facingMode: "environment" }, 
+        { fps: 15, qrbox: { width: 250, height: 250 } },
+        function onScanSuccess(decodedText) {
+          document.getElementById('barcodeBumbu').value = decodedText;
+          
+          // Cari preview gambar bumbu
+          const boxPreview = document.getElementById('previewBarangBox');
+          const imgPreview = document.getElementById('imgPreviewBarang');
+          if (DATABASE_BARANG_LOCAL[decodedText] && DATABASE_BARANG_LOCAL[decodedText].foto) {
+            imgPreview.src = DATABASE_BARANG_LOCAL[decodedText].foto;
+            boxPreview.style.display = 'block';
+          } else {
+            boxPreview.style.display = 'none';
+          }
+
+          Swal.fire({ title: 'Terbaca!', icon: 'success', timer: 800, showConfirmButton: false });
+          matikanKameraLive();
+        },
+        function onScanError(err) {
+          // Abaikan log error scanning konstan saat kamera mendeteksi frame kosong
+        }
+      ).catch(err => {
+        Swal.fire('Kamera Gagal', 'Pastikan izin akses kamera browser sudah diperbolehkan.', 'error');
+        matikanKameraLive();
+      });
+    }
+
+    function matikanKameraLive() {
+      const areaVideo = document.getElementById('kotakLiveScanner');
+      const btn = document.getElementById('btnTriggerScanner');
+      
+      if (objLiveScannerInstance) {
+        objLiveScannerInstance.stop().then(() => {
+          objLiveScannerInstance = null;
+          areaVideo.style.display = 'none';
+          btn.innerHTML = `<i class="fas fa-camera me-1"></i> Mulai Scan`;
+          btn.className = "btn btn-danger fw-bold";
+        }).catch(() => {
+          objLiveScannerInstance = null;
+          areaVideo.style.display = 'none';
+          btn.innerHTML = `<i class="fas fa-camera me-1"></i> Mulai Scan`;
+          btn.className = "btn btn-danger fw-bold";
+        });
       }
     }
 
@@ -197,34 +333,6 @@
       area.scrollIntoView({ behavior: 'smooth' });
     }
 
-    function prosesDekodeBarcodeFile(input) {
-      if (!input.files || input.files.length === 0) return;
-      Swal.fire({ title: 'Membaca Barcode...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-
-      const html5QrCode = new Html5Qrcode("barcodeBumbu");
-      html5QrCode.scanFile(input.files[0], true)
-        .then(teksBarcode => {
-          Swal.close();
-          document.getElementById('barcodeBumbu').value = teksBarcode;
-          
-          // Tampilkan preview foto bumbu jika ada di database spreadsheet
-          const boxPreview = document.getElementById('previewBarangBox');
-          const imgPreview = document.getElementById('imgPreviewBarang');
-          if (DATABASE_BARANG_LOCAL[teksBarcode] && DATABASE_BARANG_LOCAL[teksBarcode].foto) {
-            imgPreview.src = DATABASE_BARANG_LOCAL[teksBarcode].foto;
-            boxPreview.style.display = 'block';
-          } else {
-            boxPreview.style.display = 'none';
-          }
-
-          Swal.fire({ title: 'Terbaca!', icon: 'success', timer: 1000, showConfirmButton: false });
-        })
-        .catch(() => {
-          Swal.close();
-          Swal.fire('Gagal Baca', 'Stiker barcode tidak terbaca jelas. Coba foto kembali lebih dekat.', 'warning');
-        });
-    }
-
     function fotoBerhasilDiambil(input) {
       if (input.files && input.files[0]) {
         const reader = new FileReader();
@@ -239,7 +347,7 @@
       }
     }
 
-    // --- ENGINE TRANSMISI UTAMA & CADANGAN CORS CROSS-DOMAIN ---
+    // --- ENGINE PENGIRIMAN DATA ---
     function kirimDataTransaksi(e) {
       if (e && e.preventDefault) { e.preventDefault(); }
 
@@ -263,7 +371,6 @@
         koordinat: KOORDINAT_TEREKAM || "0,0"
       };
 
-      // Taktik 1: Gunakan Fetch API standar (no-cors)
       fetch(WEB_APP_URL, {
         method: "POST",
         mode: "no-cors",
@@ -274,7 +381,7 @@
         suksesTransaksiAplikasi();
       })
       .catch(function() {
-        // Taktik 2: Jika diblokir provider lokal HP, gunakan metode injeksi tag JSONP sebagai cadangan
+        // Metode Injeksi Tag Cadangan jika terblokir jaringan lokal
         const scriptBackup = document.createElement('script');
         const dataEnc = encodeURIComponent(JSON.stringify(payload));
         scriptBackup.src = `${WEB_APP_URL}?action=kirimManual&data=${dataEnc}&callback=responKirimManual`;
@@ -300,6 +407,7 @@
         txtFoto.innerText = "TAP TO CAPTURE PHOTO";
         txtFoto.className = "small fw-bold text-uppercase text-danger";
         DATA_BASE64_FOTO = "";
+        matikanKameraLive();
       });
     }
   </script>
