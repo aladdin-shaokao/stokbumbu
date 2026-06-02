@@ -30,13 +30,24 @@
     .btn-stok-awal { background-color: #3b82f6; color: white; }
     .btn-stok-fisik { background-color: #06b6d4; color: white; }
     
-    /* Efek Tombol Navigasi Aktif */
     .btn-menu.active-btn { opacity: 1 !important; border-color: #ffffff !important; box-shadow: 0 6px 15px rgba(255,255,255,0.2); transform: scale(1.02); }
     
     .photo-box { border: 2px dashed #dc2626; border-radius: 10px; padding: 25px; text-align: center; background-color: #111827; }
     #kotakLiveScanner { width: 100%; max-width: 380px; margin: 12px auto; display: none; border: 3px solid #dfb15b; border-radius: 12px; overflow: hidden; background-color: #000; }
     .product-preview-box { background-color: #111827; border: 2px solid #dfb15b; border-radius: 12px; padding: 15px; margin-top: 12px; text-align: center; display: none; }
     .product-preview-img { max-width: 100%; max-height: 220px; border-radius: 8px; border: 1px solid #374151; object-fit: contain; }
+
+    /* CSS Executive Dashboard Boss */
+    .boss-scorecard { background-color: #1f2937; border-radius: 12px; border: 1px solid #374151; padding: 15px; text-align: center; }
+    .boss-table-container { background-color: #1f2937; border-radius: 12px; border: 1px solid #374151; padding: 15px; overflow-x: auto; }
+    .table-boss { color: #f3f4f6; vertical-align: middle; }
+    .table-boss th { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #dfb15b; border-bottom: 2px solid #374151; }
+    .table-boss td { border-bottom: 1px solid #374151; font-size: 14px; }
+    .thumb-bumbu { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #4b5563; background-color: #111827; }
+    .badge-kritis { background-color: #dc2626; color: white; font-weight: bold; font-size: 11px; }
+    .badge-aman { background-color: #10b981; color: white; font-weight: bold; font-size: 11px; }
+    .text-selisih-minus { color: #ef4444; font-weight: bold; }
+    .text-selisih-aman { color: #10b981; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -47,12 +58,12 @@
     </div>
     <div class="card card-custom">
       <div class="card-header-brand">
-        <div class="brand-logo">STOK BUMBU</div>
-        <div class="small text-white-50 text-uppercase" style="font-size: 11px; letter-spacing: 1px; margin-top: 4px;">Inventory Control Centre</div>
+        <div class="brand-logo">ALADDIN INVENTORY</div>
+        <div class="small text-white-50 text-uppercase" style="font-size: 11px; letter-spacing: 1px; margin-top: 4px;">Control Centre</div>
       </div>
       <div class="card-body p-4">
         <div class="mb-3">
-          <label class="form-label form-label-custom text-aladdin-gold">USERNAME PETUGAS</label>
+          <label class="form-label form-label-custom text-aladdin-gold">USERNAME PETUGAS / BOSS</label>
           <input type="text" id="username" class="form-control form-control-dark py-2.5" placeholder="Masukkan nama pengguna">
         </div>
         <div class="mb-4">
@@ -77,10 +88,8 @@
         </div>
       </div>
 
-      <!-- SISTEM MENU MENGGUNAKAN GRID BUTTON SEJAJAR -->
       <div class="mt-4" id="menuSistem" style="display: none;">
         <div class="row g-2">
-          <!-- Menu Harian Umum -->
           <div class="col-6">
             <button id="btnStokMasukMenu" onclick="bukaFormTrans('MASUK')" class="btn btn-menu btn-stok-masuk w-100">
               <i class="fas fa-box-open d-block mb-1 fa-lg"></i> STOK MASUK
@@ -91,8 +100,6 @@
               <i class="fas fa-shipping-fast d-block mb-1 fa-lg"></i> STOK KELUAR
             </button>
           </div>
-          
-          <!-- Menu Khusus Admin Opname (Sembunyi secara default) -->
           <div class="col-6" id="wrapperStokAwal" style="display: none;">
             <button id="btnStokAwalMenu" onclick="bukaFormTrans('STOK AWAL')" class="btn btn-menu btn-stok-awal w-100">
               <i class="fas fa-history d-block mb-1 fa-lg"></i> STOK AWAL
@@ -110,7 +117,6 @@
         <h5 id="judulForm" class="fw-bold text-uppercase text-center mb-4">FORM TRANSAKSI</h5>
         <form id="formTransaksi" onsubmit="kirimDataTransaksi(event)">
           <input type="hidden" id="jenisTransaksi">
-
           <div class="mb-3">
             <label class="form-label small fw-bold text-aladdin-gold">SCAN BARCODE / QR BUMBU (LIVE CAMERA)</label>
             <div class="input-group">
@@ -119,20 +125,16 @@
                 <i class="fas fa-qrcode me-1"></i> Mulai Scan
               </button>
             </div>
-            
             <div id="kotakLiveScanner"></div>
-            
             <div id="previewBarangBox" class="product-preview-box">
               <div class="small text-white-50 mb-2">PREVIEW PRODUK BUMBU</div>
               <img id="imgPreviewBarang" src="" class="product-preview-img" alt="Preview">
             </div>
           </div>
-
           <div class="mb-3">
             <label id="labelJumlah" class="form-label small fw-bold text-aladdin-gold">JUMLAH STOK</label>
             <input type="number" id="jumlahBumbu" class="form-control form-control-dark py-2" placeholder="Masukkan angka jumlah" required>
           </div>
-
           <div class="mb-4">
             <label class="form-label small fw-bold text-aladdin-gold">AMBIL GAMBAR FISIK BUMBU</label>
             <div class="photo-box" onclick="document.getElementById('fileFotoFisik').click()" style="cursor: pointer;">
@@ -141,16 +143,72 @@
               <input type="file" id="fileFotoFisik" accept="image/*" capture="environment" style="display: none;" onchange="fotoBerhasilDiambil(this)">
             </div>
           </div>
-
           <button type="submit" id="btnSubmitLaporan" class="btn btn-warning w-100 py-2.5 fw-bold text-uppercase" style="font-size: 16px;">Kirim Laporan Stok</button>
         </form>
       </div>
     </div>
   </div>
 
+  <div id="halamanBoss" style="display: none;">
+    <div class="header-dashboard text-center d-flex justify-content-between align-items-center px-4">
+      <div class="text-start">
+        <h4 class="fw-bold text-white mb-0" style="letter-spacing: 0.5px;">EXECUTIVE MONITOR</h4>
+        <p class="small text-white-50 mb-0" style="font-size: 12px;">Selamat Datang, <span id="namaBossAktif" class="text-aladdin-gold fw-bold">Boss</span></p>
+      </div>
+      <button onclick="logoutSistem()" class="btn btn-sm btn-outline-light fw-bold px-3"><i class="fas fa-sign-out-alt me-1"></i> Keluar</button>
+    </div>
+
+    <div class="container px-3 pb-5 mt-4">
+      <div class="mb-4 d-flex justify-content-center">
+        <div class="btn-group w-100" style="max-width: 400px; border: 1px solid #4b5563;">
+          <button type="button" id="btnFilterAll" onclick="filterLaporanBoss('ALL')" class="btn btn-danger btn-sm fw-bold">SEMUA</button>
+          <button type="button" id="btnFilterPIK" onclick="filterLaporanBoss('PIK 1')" class="btn btn-dark btn-sm fw-bold">PIK 1</button>
+          <button type="button" id="btnFilterSerpong" onclick="filterLaporanBoss('SERPONG')" class="btn btn-dark btn-sm fw-bold">SERPONG</button>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-6">
+          <div class="boss-scorecard">
+            <div class="small text-white-50 fw-bold text-uppercase" style="font-size: 11px;">Bumbu Kritis</div>
+            <h2 class="fw-bold text-danger my-1" id="bossTotalKritis">0</h2>
+            <div class="small text-white-50" style="font-size: 10px;">Perlu Restock Segera</div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="boss-scorecard">
+            <div class="small text-white-50 fw-bold text-uppercase" style="font-size: 11px;">Selisih Opname</div>
+            <h2 class="fw-bold text-warning my-1" id="bossTotalSelisih">0</h2>
+            <div class="small text-white-50" style="font-size: 10px;">Akumulasi Pekan Ini</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="boss-table-container">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold text-aladdin-gold mb-0"><i class="fas fa-layer-group me-2"></i>KONTROL STOK & FISIK</h6>
+          <span class="badge bg-secondary" style="font-size: 10px;" id="lblJumlahItemBoss">0 Item</span>
+        </div>
+        <table class="table table-dark table-borderless table-boss mb-0">
+          <thead>
+            <tr>
+              <th class="text-center" style="width: 70px;">Visual</th>
+              <th>Nama Bumbu</th>
+              <th class="text-center">Sisa</th>
+              <th class="text-center">Selisih</th>
+            </tr>
+          </thead>
+          <tbody id="bodyTabelBoss">
+            </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw2JjLlqZo1GET5llD5i4APwCgRCkIi9bH8E6LNGz_AF0pJWtbxehB_MenfOA-rPJgHoQ/exec"; 
+    // GANTI LINK DI BAWAH INI DENGAN URL WEB APP BARU HASIL DEPLOY ANDA
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyhfVE-1o4lNa5NCnzAjhDAxmxV2Y8H1zsp_eBCsLNuaBkL0vU_H7sO-GeW60ePiNsQgg/exec"; 
 
     let NAMA_PETUGAS_LOGGED_IN = "";
     let CABANG_TERVERIFIKASI = "Belum Diketahui";
@@ -159,6 +217,9 @@
     let DATABASE_BARANG_LOCAL = {};
     let objLiveScannerInstance = null;
     let IS_ADMIN_OPNAME = false;
+
+    let MASTER_DATA_LAPORAN_BOSS = [];
+    let FILTER_CABANG_AKTIF = "ALL";
 
     // --- LOGIN ENGINE ---
     function eksekusiKoneksiJSONP() {
@@ -172,8 +233,7 @@
 
       Swal.fire({ title: 'Memeriksa Akses...', text: 'Menghubungkan ke server pusat...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
-      // Cek hak akses lokal sebelum menembak ke server cloud
-      if (user.toLowerCase() === "admin" && pass === "adminaladdin123") {
+      if (user.toLowerCase() === "admin" && pass === "aladdin123") {
         IS_ADMIN_OPNAME = true;
       } else {
         IS_ADMIN_OPNAME = false;
@@ -187,6 +247,19 @@
     function responLoginPusat(res) {
       Swal.close();
       if(res.status === "success") {
+        
+        // JIKA YANG LOGIN ADALAH BOSS
+        if(res.role === "boss") {
+          MASTER_DATA_LAPORAN_BOSS = res.laporanStok || [];
+          document.getElementById('namaBossAktif').innerText = res.namaLengkap || "Owner";
+          document.getElementById('halamanLogin').style.display = 'none';
+          document.getElementById('halamanBoss').style.display = 'block';
+          
+          filterLaporanBoss('ALL');
+          return;
+        }
+
+        // JIKA YANG LOGIN ADALAH PETUGAS BIASA
         NAMA_PETUGAS_LOGGED_IN = res.data.Nama_Lengkap;
         DATABASE_BARANG_LOCAL = res.databaseBarang || {};
 
@@ -194,7 +267,6 @@
         document.getElementById('halamanLogin').style.display = 'none';
         document.getElementById('halamanDashboard').style.display = 'block';
         
-        // Logika Menampilkan Tombol Tambahan Jika Sesuai Otoritas
         const wrapperAwal = document.getElementById('wrapperStokAwal');
         const wrapperFisik = document.getElementById('wrapperStokFisik');
         if (IS_ADMIN_OPNAME) {
@@ -206,14 +278,73 @@
           wrapperFisik.style.display = 'none';
         }
 
-        // Jalankan Validasi Koordinat GPS Asli Lintas Cabang (PIK 1 vs Serpong)
         prosesHitungGPSFisik(res.cabangList);
       } else {
         Swal.fire('Gagal Masuk', res.message, 'error');
       }
     }
 
-    // --- ENGINE DETEKSI GPS AKTUAL ---
+    // --- ENGINE DASHBOARD KHUSUS BOSS ---
+    function filterLaporanBoss(cabang) {
+      FILTER_CABANG_AKTIF = cabang;
+      
+      document.getElementById('btnFilterAll').className = (cabang === 'ALL') ? "btn btn-danger btn-sm fw-bold" : "btn btn-dark btn-sm fw-bold";
+      document.getElementById('btnFilterPIK').className = (cabang === 'PIK 1') ? "btn btn-danger btn-sm fw-bold" : "btn btn-dark btn-sm fw-bold";
+      document.getElementById('btnFilterSerpong').className = (cabang === 'SERPONG') ? "btn btn-danger btn-sm fw-bold" : "btn btn-dark btn-sm fw-bold";
+
+      let dataDisaring = [];
+      if(cabang === 'ALL') {
+        dataDisaring = MASTER_DATA_LAPORAN_BOSS;
+      } else {
+        dataDisaring = MASTER_DATA_LAPORAN_BOSS.filter(item => item.cabang.toUpperCase() === cabang.toUpperCase());
+      }
+
+      let hitungKritis = 0;
+      let hitungSelisih = 0;
+      const tbody = document.getElementById('bodyTabelBoss');
+      tbody.innerHTML = "";
+
+      dataDisaring.forEach(item => {
+        if(item.status === "KRITIS") hitungKritis++;
+        hitungSelisih += (item.selisih || 0);
+
+        const badgeStatus = (item.status === "KRITIS") ? `<span class="badge badge-kritis">KRITIS</span>` : `<span class="badge bg-secondary" style="font-size:10px;">AMAN</span>`;
+        const classSelisih = (item.selisih < 0) ? "text-selisih-minus" : "text-selisih-aman";
+        const teksSelisih = (item.selisih > 0) ? `+${item.selisih}` : item.selisih;
+
+        const linkFoto = item.foto ? item.foto : "https://placehold.co/100x100/1f2937/dfb15b?text=No+Image";
+
+        const barisHtml = `
+          <tr>
+            <td class="text-center">
+              <img src="${linkFoto}" class="thumb-bumbu" alt="Bumbu" onerror="this.src='https://placehold.co/100x100/1f2937/dfb15b?text=Bumbu'">
+            </td>
+            <td>
+              <div class="fw-bold text-white">${item.nama}</div>
+              <div class="text-white-50" style="font-size: 11px;">${item.cabang} | ${item.barcode}</div>
+              <div class="mt-1">${badgeStatus}</div>
+            </td>
+            <td class="text-center fw-bold text-aladdin-gold">${item.stokAkhir}</td>
+            <td class="text-center ${classSelisih}">${teksSelisih}</td>
+          </tr>
+        `;
+        tbody.innerHTML += barisHtml;
+      });
+
+      document.getElementById('bossTotalKritis').innerText = hitungKritis;
+      document.getElementById('bossTotalSelisih').innerText = (hitungSelisih > 0) ? `+${hitungSelisih}` : hitungSelisih;
+      document.getElementById('lblJumlahItemBoss').innerText = `${dataDisaring.length} Item`;
+    }
+
+    function logoutSistem() {
+      document.getElementById('halamanBoss').style.display = 'none';
+      document.getElementById('halamanDashboard').style.display = 'none';
+      document.getElementById('username').value = "";
+      document.getElementById('password').value = "";
+      document.getElementById('halamanLogin').style.display = 'block';
+    }
+
+    // --- ENGINE GPS PETUGAS ---
     function prosesHitungGPSFisik(cabangList) {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -223,8 +354,8 @@
             KOORDINAT_TEREKAM = latUser + "," + lngUser;
 
             if(!cabangList || cabangList.length === 0) {
-              CABANG_TERVERIFIKASI = "PIK 1";
-              kunciStatusSuksesGPS("Cabang: PIK 1 (Default)");
+              CABANG_TERVERIFIKASI = "SERPONG";
+              kunciStatusSuksesGPS("Cabang: Serpong (Default)");
               return;
             }
 
@@ -253,9 +384,7 @@
             CABANG_TERVERIFIKASI = cabangTerdekat;
             kunciStatusSuksesGPS("Terdeteksi di Cabang: " + CABANG_TERVERIFIKASI);
           },
-          function() {
-            kunciStatusGagalGPS();
-          },
+          function() { kunciStatusGagalGPS(); },
           { enableHighAccuracy: true, timeout: 8000 }
         );
       } else {
@@ -275,26 +404,22 @@
       box.className = "p-3 rounded fw-bold small bg-warning text-dark d-flex justify-content-between align-items-center";
       box.innerHTML = `
         <span><i class="fas fa-exclamation-triangle me-2"></i> GPS Lemah (Gagal Kunci Lokasi)</span>
-        <button type="button" onclick="bypassGPSPIK()" class="btn btn-sm btn-dark fw-bold px-2 py-1">Set PIK 1</button>
+        <button type="button" onclick="bypassGPSSerpong()" class="btn btn-sm btn-dark fw-bold px-2 py-1">Set Serpong</button>
       `;
       document.getElementById('menuSistem').style.display = 'block';
     }
 
-    function bypassGPSPIK() {
-      KOORDINAT_TEREKAM = "-6.0940,106.7437"; 
-      CABANG_TERVERIFIKASI = "PIK 1";
-      kunciStatusSuksesGPS("Cabang Dikunci Manual: PIK 1");
+    function bypassGPSSerpong() {
+      KOORDINAT_TEREKAM = "-6.2475,106.6255"; 
+      CABANG_TERVERIFIKASI = "SERPONG";
+      kunciStatusSuksesGPS("Cabang Dikunci Manual: Serpong");
     }
 
     // --- ENGINE LIVE CAMERA SCANNER ---
     function toggleLiveScanner() {
       const areaVideo = document.getElementById('kotakLiveScanner');
       const btn = document.getElementById('btnTriggerScanner');
-
-      if (objLiveScannerInstance) {
-        matikanKameraLive();
-        return;
-      }
+      if (objLiveScannerInstance) { matikanKameraLive(); return; }
 
       areaVideo.style.display = 'block';
       btn.innerHTML = `<i class="fas fa-stop me-1"></i> Matikan Kamera`;
@@ -306,16 +431,12 @@
         { fps: 15, qrbox: { width: 250, height: 250 } },
         function onScanSuccess(decodedText) {
           document.getElementById('barcodeBumbu').value = decodedText;
-          
           const boxPreview = document.getElementById('previewBarangBox');
           const imgPreview = document.getElementById('imgPreviewBarang');
           if (DATABASE_BARANG_LOCAL[decodedText] && DATABASE_BARANG_LOCAL[decodedText].foto) {
             imgPreview.src = DATABASE_BARANG_LOCAL[decodedText].foto;
             boxPreview.style.display = 'block';
-          } else {
-            boxPreview.style.display = 'none';
-          }
-
+          } else { boxPreview.style.display = 'none'; }
           Swal.fire({ title: 'Terbaca!', icon: 'success', timer: 800, showConfirmButton: false });
           matikanKameraLive();
         },
@@ -329,7 +450,6 @@
     function matikanKameraLive() {
       const areaVideo = document.getElementById('kotakLiveScanner');
       const btn = document.getElementById('btnTriggerScanner');
-      
       if (objLiveScannerInstance) {
         objLiveScannerInstance.stop().then(() => {
           objLiveScannerInstance = null;
@@ -339,29 +459,23 @@
         }).catch(() => {
           objLiveScannerInstance = null;
           areaVideo.style.display = 'none';
-          btn.innerHTML = `<i class="fas fa-qrcode me-1"></i> Mulai Scan`;
-          btn.className = "btn btn-danger fw-bold";
         });
       }
     }
 
-    // --- FUNGSI MENGATUR TOMBOL AKTIF & FORM TRANSAKSI ---
+    // --- HANDLING INTERFACES ---
     function bukaFormTrans(tipe) {
       document.getElementById('jenisTransaksi').value = tipe;
       const area = document.getElementById('areaFormTransaksi');
       const judul = document.getElementById('judulForm');
       const lbl = document.getElementById('labelJumlah');
       
-      // Reset efek tombol aktif dari seluruh menu
       document.getElementById('btnStokMasukMenu').classList.remove('active-btn');
       document.getElementById('btnStokKeluarMenu').classList.remove('active-btn');
       document.getElementById('btnStokAwalMenu').classList.remove('active-btn');
       document.getElementById('btnStokFisikMenu').classList.remove('active-btn');
-
-      area.charCodeAt;
       area.classList.remove('d-none');
       
-      // Pengkondisian Visual berdasarkan Tipe Tombol yang Diklik
       if(tipe === 'MASUK') {
         document.getElementById('btnStokMasukMenu').classList.add('active-btn');
         judul.innerText = "Form Barang Masuk (Restock)";
@@ -383,7 +497,6 @@
         judul.className = "fw-bold text-info text-center mb-4";
         lbl.innerText = "JUMLAH FISIK DI DAPUR SAAT INI";
       }
-      
       area.scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -401,19 +514,12 @@
       }
     }
 
-    // --- ENGINE PENGIRIMAN DATA ---
     function kirimDataTransaksi(e) {
       if (e && e.preventDefault) { e.preventDefault(); }
-
       const btnSubmit = document.getElementById('btnSubmitLaporan');
       if (btnSubmit) { btnSubmit.disabled = true; }
 
-      Swal.fire({ 
-        title: 'Menyimpan...', 
-        text: 'Mengirim laporan stok bumbu ke database cloud...',
-        allowOutsideClick: false, 
-        didOpen: () => { Swal.showLoading(); } 
-      });
+      Swal.fire({ title: 'Menyimpan...', text: 'Mengirim laporan stok bumbu ke database cloud...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
       const payload = {
         petugas: NAMA_PETUGAS_LOGGED_IN || "Petugas Aladdin",
@@ -431,9 +537,7 @@
         headers: { "Content-Type": "text/plain; charset=utf-8" },
         body: JSON.stringify(payload)
       })
-      .then(function() {
-        suksesTransaksiAplikasi();
-      })
+      .then(function() { suksesTransaksiAplikasi(); })
       .catch(function() {
         const scriptBackup = document.createElement('script');
         const dataEnc = encodeURIComponent(JSON.stringify(payload));
@@ -446,22 +550,14 @@
       const btnSubmit = document.getElementById('btnSubmitLaporan');
       if (btnSubmit) { btnSubmit.disabled = false; }
       Swal.close();
-      
-      Swal.fire({
-        title: 'Berhasil!',
-        text: 'Transaksi bumbu berhasil dicatat di Google Sheets.',
-        icon: 'success'
-      }).then(() => {
-        // Reset Status Tombol Aktif
+      Swal.fire({ title: 'Berhasil!', text: 'Transaksi bumbu berhasil dicatat di Google Sheets.', icon: 'success' }).then(() => {
         document.getElementById('btnStokMasukMenu').classList.remove('active-btn');
         document.getElementById('btnStokKeluarMenu').classList.remove('active-btn');
         document.getElementById('btnStokAwalMenu').classList.remove('active-btn');
         document.getElementById('btnStokFisikMenu').classList.remove('active-btn');
-
         document.getElementById('formTransaksi').reset();
         document.getElementById('areaFormTransaksi').classList.add('d-none');
         document.getElementById('previewBarangBox').style.display = 'none';
-        
         const txtFoto = document.getElementById('textStatusFoto');
         txtFoto.innerText = "TAP TO CAPTURE PHOTO";
         txtFoto.className = "small fw-bold text-uppercase text-danger";
