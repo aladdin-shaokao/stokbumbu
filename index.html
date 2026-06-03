@@ -62,23 +62,27 @@
         <div class="small text-white-50 text-uppercase" style="font-size: 11px; letter-spacing: 1px; margin-top: 4px;">Control Centre</div>
       </div>
       <div class="card-body p-4">
+        <!-- INPUT USERNAME DENGAN FITUR MULTI-ACCOUNT DATALIST -->
         <div class="mb-3">
-          <label class="form-label form-label-custom text-aladdin-gold">USERNAME PETUGAS / BOSS</label>
-          <input type="text" id="username" class="form-control form-control-dark py-2.5" placeholder="Masukkan nama pengguna">
+          <label class="form-label-custom text-aladdin-gold">USERNAME PETUGAS / BOSS</label>
+          <input type="text" id="username" list="daftarAkunTersimpan" class="form-control form-control-dark py-2.5" placeholder="Masukkan nama pengguna" oninput="cekAutofillPassword(this.value)">
+          <datalist id="daftarAkunTersimpan">
+            <!-- Daftar nama petugas yang pernah login akan muncul otomatis di sini -->
+          </datalist>
         </div>
+        
+        <!-- FIX: INPUT PASSWORD YANG DIKEMBALIKAN SEMULA -->
         <div class="mb-3">
-  <label class="form-label form-label-custom text-aladdin-gold">USERNAME PETUGAS / BOSS</label>
-  <!-- Menambahkan list="daftarAkunTersimpan" agar muncul pilihan saat diklik -->
-  <input type="text" id="username" list="daftarAkunTersimpan" class="form-control form-control-dark py-2.5" placeholder="Masukkan nama pengguna" oninput="cekAutofillPassword(this.value)">
-  <datalist id="daftarAkunTersimpan">
-    <!-- Daftar nama petugas yang pernah login akan muncul otomatis di sini -->
-  </datalist>
-</div>
-<!-- TAMBAHKAN CHECKBOX INGAT SAYA DI BAWAH INI -->
-<div class="mb-4 form-check text-start">
-  <input type="checkbox" class="form-check-input" id="ingatSaya" style="cursor: pointer; background-color: #111827; border-color: #4b5563;">
-  <label class="form-check-label small text-white-50" for="ingatSaya" style="cursor: pointer; font-weight: 600;">Ingat Username & Password</label>
-</div>
+          <label class="form-label-custom text-aladdin-gold">PASSWORD</label>
+          <input type="password" id="password" class="form-control form-control-dark py-2.5" placeholder="Masukkan kata sandi">
+        </div>
+
+        <!-- CHECKBOX INGAT SAYA -->
+        <div class="mb-4 form-check text-start">
+          <input type="checkbox" class="form-check-input" id="ingatSaya" style="cursor: pointer; background-color: #111827; border-color: #4b5563;">
+          <label class="form-check-label small text-white-50" for="ingatSaya" style="cursor: pointer; font-weight: 600;">Ingat Username & Password</label>
+        </div>
+        
         <button onclick="eksekusiKoneksiJSONP()" class="btn btn-danger-custom w-100 py-2.5 text-uppercase">Masuk Sistem</button>
       </div>
     </div>
@@ -208,7 +212,7 @@
             </tr>
           </thead>
           <tbody id="bodyTabelBoss">
-            </tbody>
+          </tbody>
         </table>
       </div>
     </div>
@@ -216,21 +220,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
-    // GANTI LINK DI BAWAH INI DENGAN URL WEB APP BARU HASIL DEPLOY ANDA
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwErjn4LGyikzAQNYErcS4KtjMoc2ABf_z6yRIgreJODZc2nMGaIs45j6f3dqy7Bi-IXw/exec"; 
 
-    // --- LOGIKA OTOMATIS MEMUAT USER & PASS YANG TERSIMPAN ---
-document.addEventListener("DOMContentLoaded", function() {
-  const savedUser = localStorage.getItem("aladdin_user");
-  const savedPass = localStorage.getItem("aladdin_pass");
-  
-  if (savedUser && savedPass) {
-    document.getElementById('username').value = savedUser;
-    document.getElementById('password').value = savedPass;
-    document.getElementById('ingatSaya').checked = true;
-  }
-});
-    
     let NAMA_PETUGAS_LOGGED_IN = "";
     let CABANG_TERVERIFIKASI = "Belum Diketahui";
     let KOORDINAT_TEREKAM = "0,0";
@@ -242,104 +233,97 @@ document.addEventListener("DOMContentLoaded", function() {
     let MASTER_DATA_LAPORAN_BOSS = [];
     let FILTER_CABANG_AKTIF = "ALL";
 
-   // --- 1. MEMUAT DAFTAR AKUN SAAT HALAMAN DIBUKA ---
-document.addEventListener("DOMContentLoaded", function() {
-  muatPilihanAkunDatalist();
-});
+    // --- 1. MEMUAT DAFTAR AKUN SAAT HALAMAN DIBUKA ---
+    document.addEventListener("DOMContentLoaded", function() {
+      muatPilihanAkunDatalist();
+    });
 
-// Fungsi untuk mengisi rekomendasi nama akun di datalist browser
-function muatPilihanAkunDatalist() {
-  const databaseAkun = JSON.parse(localStorage.getItem("aladdin_multi_accounts")) || {};
-  const datalist = document.getElementById("daftarAkunTersimpan");
-  datalist.innerHTML = ""; // Bersihkan list
-  
-  // Masukkan semua nama pengguna yang pernah tersimpan ke dalam list pilihan
-  for (const username in databaseAkun) {
-    const option = document.createElement("option");
-    option.value = username;
-    datalist.appendChild(option);
-  }
-  
-  // Autofill otomatis untuk akun yang paling terakhir kali digunakan
-  const terakhirLogin = localStorage.getItem("aladdin_terakhir_user");
-  if (terakhirLogin && databaseAkun[terakhirLogin]) {
-    document.getElementById('username').value = terakhirLogin;
-    document.getElementById('password').value = databaseAkun[terakhirLogin];
-    document.getElementById('ingatSaya').checked = true;
-  }
-}
-
-// --- 2. DETEKSI PENGGANTIAN USERNAME (AUTOFILL PASSWORD) ---
-function cekAutofillPassword(usernameInput) {
-  const userKey = usernameInput.trim().toLowerCase();
-  const databaseAkun = JSON.parse(localStorage.getItem("aladdin_multi_accounts")) || {};
-  
-  // Jika username yang diketik/dipilih ada di memori, langsung isi password-nya otomatis
-  if (databaseAkun[userKey]) {
-    document.getElementById('password').value = databaseAkun[userKey];
-    document.getElementById('ingatSaya').checked = true;
-  } else {
-    document.getElementById('password').value = "";
-    document.getElementById('ingatSaya').checked = false;
-  }
-}
-
-// --- 3. EKSEKUSI LOGIN ENGINE & MENYIMPAN REKAMAN MULTI-AKUN ---
-function eksekusiKoneksiJSONP() {
-  const user = document.getElementById('username').value;
-  const pass = document.getElementById('password').value;
-  const ingatSayaChecked = document.getElementById('ingatSaya').checked;
-
-  if(!user || !pass) {
-    Swal.fire('Perhatian', 'Username dan password wajib diisi.', 'warning');
-    return;
-  }
-
-  const userKey = user.trim().toLowerCase();
-  let databaseAkun = JSON.parse(localStorage.getItem("aladdin_multi_accounts")) || {};
-
-  if (ingatSayaChecked) {
-    // Simpan atau perbarui password akun ini di database lokal HP
-    databaseAkun[userKey] = pass.trim();
-    localStorage.setItem("aladdin_multi_accounts", JSON.stringify(databaseAkun));
-    localStorage.setItem("aladdin_terakhir_user", user.trim());
-  } else {
-    // Jika login tanpa mencentang 'Ingat Saya', hapus hanya akun ini dari memori
-    delete databaseAkun[userKey];
-    localStorage.setItem("aladdin_multi_accounts", JSON.stringify(databaseAkun));
-    if(localStorage.getItem("aladdin_terakhir_user") === user.trim()) {
-      localStorage.removeItem("aladdin_terakhir_user");
+    function muatPilihanAkunDatalist() {
+      const databaseAkun = JSON.parse(localStorage.getItem("aladdin_multi_accounts")) || {};
+      const datalist = document.getElementById("daftarAkunTersimpan");
+      datalist.innerHTML = "";
+      
+      for (const username in databaseAkun) {
+        const option = document.createElement("option");
+        option.value = username;
+        datalist.appendChild(option);
+      }
+      
+      const terakhirLogin = localStorage.getItem("aladdin_terakhir_user");
+      if (terakhirLogin && databaseAkun[terakhirLogin]) {
+        document.getElementById('username').value = terakhirLogin;
+        document.getElementById('password').value = databaseAkun[terakhirLogin];
+        document.getElementById('ingatSaya').checked = true;
+      }
     }
-  }
 
-  Swal.fire({ title: 'Memeriksa Akses...', text: 'Menghubungkan ke server pusat...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+    // --- 2. DETEKSI PENGGANTIAN USERNAME (AUTOFILL PASSWORD) ---
+    function cekAutofillPassword(usernameInput) {
+      const userKey = usernameInput.trim().toLowerCase();
+      const databaseAkun = JSON.parse(localStorage.getItem("aladdin_multi_accounts")) || {};
+      
+      if (databaseAkun[userKey]) {
+        document.getElementById('password').value = databaseAkun[userKey];
+        document.getElementById('ingatSaya').checked = true;
+      } else {
+        document.getElementById('password').value = "";
+        document.getElementById('ingatSaya').checked = false;
+      }
+    }
 
-  if (user.toLowerCase() === "admin" && pass === "aladdin123") {
-    IS_ADMIN_OPNAME = true;
-  } else {
-    IS_ADMIN_OPNAME = false;
-  }
+    // --- 3. EKSEKUSI LOGIN ENGINE & MENYIMPAN REKAMAN MULTI-AKUN ---
+    function eksekusiKoneksiJSONP() {
+      const user = document.getElementById('username').value;
+      const pass = document.getElementById('password').value;
+      const ingatSayaChecked = document.getElementById('ingatSaya').checked;
 
-  const scriptBypass = document.createElement('script');
-  scriptBypass.src = `${WEB_APP_URL}?action=login&username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}&callback=responLoginPusat`;
-  document.body.appendChild(scriptBypass);
-}
+      if(!user || !pass) {
+        Swal.fire('Perhatian', 'Username dan password wajib diisi.', 'warning');
+        return;
+      }
 
-// Tambahkan trigger refresh list saat logout agar data ter-update
-function logoutSistem() {
-  document.getElementById('halamanBoss').style.display = 'none';
-  document.getElementById('halamanDashboard').style.display = 'none';
-  document.getElementById('username').value = "";
-  document.getElementById('password').value = "";
-  document.getElementById('halamanLogin').style.display = 'block';
-  muatPilihanAkunDatalist(); // Segarkan daftar pilihan akun saat keluar
-}
+      const userKey = user.trim().toLowerCase();
+      let databaseAkun = JSON.parse(localStorage.getItem("aladdin_multi_accounts")) || {};
+
+      if (ingatSayaChecked) {
+        databaseAkun[userKey] = pass.trim();
+        localStorage.setItem("aladdin_multi_accounts", JSON.stringify(databaseAkun));
+        localStorage.setItem("aladdin_terakhir_user", user.trim());
+      } else {
+        delete databaseAkun[userKey];
+        localStorage.setItem("aladdin_multi_accounts", JSON.stringify(databaseAkun));
+        if(localStorage.getItem("aladdin_terakhir_user") === user.trim()) {
+          localStorage.removeItem("aladdin_terakhir_user");
+        }
+      }
+
+      Swal.fire({ title: 'Memeriksa Akses...', text: 'Menghubungkan ke server pusat...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+      if (user.toLowerCase() === "admin" && pass === "aladdin123") {
+        IS_ADMIN_OPNAME = true;
+      } else {
+        IS_ADMIN_OPNAME = false;
+      }
+
+      const scriptBypass = document.createElement('script');
+      scriptBypass.src = `${WEB_APP_URL}?action=login&username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}&callback=responLoginPusat`;
+      document.body.appendChild(scriptBypass);
+    }
+
+    // REFACTORING LOGOUT SISTEM (TERPUSAT & AMAN)
+    function logoutSistem() {
+      document.getElementById('halamanBoss').style.display = 'none';
+      document.getElementById('halamanDashboard').style.display = 'none';
+      document.getElementById('username').value = "";
+      document.getElementById('password').value = "";
+      document.getElementById('halamanLogin').style.display = 'block';
+      muatPilihanAkunDatalist(); 
+    }
 
     function responLoginPusat(res) {
       Swal.close();
       if(res.status === "success") {
         
-        // JIKA YANG LOGIN ADALAH BOSS
         if(res.role === "boss") {
           MASTER_DATA_LAPORAN_BOSS = res.laporanStok || [];
           document.getElementById('namaBossAktif').innerText = res.namaLengkap || "Owner";
@@ -350,7 +334,6 @@ function logoutSistem() {
           return;
         }
 
-        // JIKA YANG LOGIN ADALAH PETUGAS BIASA
         NAMA_PETUGAS_LOGGED_IN = res.data.Nama_Lengkap;
         DATABASE_BARANG_LOCAL = res.databaseBarang || {};
 
@@ -425,14 +408,6 @@ function logoutSistem() {
       document.getElementById('bossTotalKritis').innerText = hitungKritis;
       document.getElementById('bossTotalSelisih').innerText = (hitungSelisih > 0) ? `+${hitungSelisih}` : hitungSelisih;
       document.getElementById('lblJumlahItemBoss').innerText = `${dataDisaring.length} Item`;
-    }
-
-    function logoutSistem() {
-      document.getElementById('halamanBoss').style.display = 'none';
-      document.getElementById('halamanDashboard').style.display = 'none';
-      document.getElementById('username').value = "";
-      document.getElementById('password').value = "";
-      document.getElementById('halamanLogin').style.display = 'block';
     }
 
     // --- ENGINE GPS PETUGAS ---
