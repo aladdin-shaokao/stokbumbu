@@ -67,8 +67,12 @@
           <input type="text" id="username" class="form-control form-control-dark py-2.5" placeholder="Masukkan nama pengguna">
         </div>
         <div class="mb-3">
-  <label class="form-label form-label-custom text-aladdin-gold">PASSWORD</label>
-  <input type="password" id="password" class="form-control form-control-dark py-2.5" placeholder="Masukkan kata sandi">
+  <label class="form-label form-label-custom text-aladdin-gold">USERNAME PETUGAS / BOSS</label>
+  <!-- Menambahkan list="daftarAkunTersimpan" agar muncul pilihan saat diklik -->
+  <input type="text" id="username" list="daftarAkunTersimpan" class="form-control form-control-dark py-2.5" placeholder="Masukkan nama pengguna" oninput="cekAutofillPassword(this.value)">
+  <datalist id="daftarAkunTersimpan">
+    <!-- Daftar nama petugas yang pernah login akan muncul otomatis di sini -->
+  </datalist>
 </div>
 <!-- TAMBAHKAN CHECKBOX INGAT SAYA DI BAWAH INI -->
 <div class="mb-4 form-check text-start">
@@ -238,7 +242,49 @@ document.addEventListener("DOMContentLoaded", function() {
     let MASTER_DATA_LAPORAN_BOSS = [];
     let FILTER_CABANG_AKTIF = "ALL";
 
-    // --- LENGKAPI FUNGSI LOGIN ENGINE ---
+   // --- 1. MEMUAT DAFTAR AKUN SAAT HALAMAN DIBUKA ---
+document.addEventListener("DOMContentLoaded", function() {
+  muatPilihanAkunDatalist();
+});
+
+// Fungsi untuk mengisi rekomendasi nama akun di datalist browser
+function muatPilihanAkunDatalist() {
+  const databaseAkun = JSON.parse(localStorage.getItem("aladdin_multi_accounts")) || {};
+  const datalist = document.getElementById("daftarAkunTersimpan");
+  datalist.innerHTML = ""; // Bersihkan list
+  
+  // Masukkan semua nama pengguna yang pernah tersimpan ke dalam list pilihan
+  for (const username in databaseAkun) {
+    const option = document.createElement("option");
+    option.value = username;
+    datalist.appendChild(option);
+  }
+  
+  // Autofill otomatis untuk akun yang paling terakhir kali digunakan
+  const terakhirLogin = localStorage.getItem("aladdin_terakhir_user");
+  if (terakhirLogin && databaseAkun[terakhirLogin]) {
+    document.getElementById('username').value = terakhirLogin;
+    document.getElementById('password').value = databaseAkun[terakhirLogin];
+    document.getElementById('ingatSaya').checked = true;
+  }
+}
+
+// --- 2. DETEKSI PENGGANTIAN USERNAME (AUTOFILL PASSWORD) ---
+function cekAutofillPassword(usernameInput) {
+  const userKey = usernameInput.trim().toLowerCase();
+  const databaseAkun = JSON.parse(localStorage.getItem("aladdin_multi_accounts")) || {};
+  
+  // Jika username yang diketik/dipilih ada di memori, langsung isi password-nya otomatis
+  if (databaseAkun[userKey]) {
+    document.getElementById('password').value = databaseAkun[userKey];
+    document.getElementById('ingatSaya').checked = true;
+  } else {
+    document.getElementById('password').value = "";
+    document.getElementById('ingatSaya').checked = false;
+  }
+}
+
+// --- 3. EKSEKUSI LOGIN ENGINE & MENYIMPAN REKAMAN MULTI-AKUN ---
 function eksekusiKoneksiJSONP() {
   const user = document.getElementById('username').value;
   const pass = document.getElementById('password').value;
@@ -249,14 +295,21 @@ function eksekusiKoneksiJSONP() {
     return;
   }
 
-  // JIKA CHECKBOX DICENTANG, SIMPAN KE STORAGE HP
+  const userKey = user.trim().toLowerCase();
+  let databaseAkun = JSON.parse(localStorage.getItem("aladdin_multi_accounts")) || {};
+
   if (ingatSayaChecked) {
-    localStorage.setItem("aladdin_user", user.trim());
-    localStorage.setItem("aladdin_pass", pass.trim());
+    // Simpan atau perbarui password akun ini di database lokal HP
+    databaseAkun[userKey] = pass.trim();
+    localStorage.setItem("aladdin_multi_accounts", JSON.stringify(databaseAkun));
+    localStorage.setItem("aladdin_terakhir_user", user.trim());
   } else {
-    // JIKA TIDAK DICENTANG, HAPUS MEMORI TERSIMPAN
-    localStorage.removeItem("aladdin_user");
-    localStorage.removeItem("aladdin_pass");
+    // Jika login tanpa mencentang 'Ingat Saya', hapus hanya akun ini dari memori
+    delete databaseAkun[userKey];
+    localStorage.setItem("aladdin_multi_accounts", JSON.stringify(databaseAkun));
+    if(localStorage.getItem("aladdin_terakhir_user") === user.trim()) {
+      localStorage.removeItem("aladdin_terakhir_user");
+    }
   }
 
   Swal.fire({ title: 'Memeriksa Akses...', text: 'Menghubungkan ke server pusat...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
@@ -270,6 +323,16 @@ function eksekusiKoneksiJSONP() {
   const scriptBypass = document.createElement('script');
   scriptBypass.src = `${WEB_APP_URL}?action=login&username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}&callback=responLoginPusat`;
   document.body.appendChild(scriptBypass);
+}
+
+// Tambahkan trigger refresh list saat logout agar data ter-update
+function logoutSistem() {
+  document.getElementById('halamanBoss').style.display = 'none';
+  document.getElementById('halamanDashboard').style.display = 'none';
+  document.getElementById('username').value = "";
+  document.getElementById('password').value = "";
+  document.getElementById('halamanLogin').style.display = 'block';
+  muatPilihanAkunDatalist(); // Segarkan daftar pilihan akun saat keluar
 }
 
     function responLoginPusat(res) {
