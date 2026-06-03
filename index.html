@@ -215,6 +215,18 @@
     // GANTI LINK DI BAWAH INI DENGAN URL WEB APP BARU HASIL DEPLOY ANDA
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwErjn4LGyikzAQNYErcS4KtjMoc2ABf_z6yRIgreJODZc2nMGaIs45j6f3dqy7Bi-IXw/exec"; 
 
+    // --- LOGIKA OTOMATIS MEMUAT USER & PASS YANG TERSIMPAN ---
+document.addEventListener("DOMContentLoaded", function() {
+  const savedUser = localStorage.getItem("aladdin_user");
+  const savedPass = localStorage.getItem("aladdin_pass");
+  
+  if (savedUser && savedPass) {
+    document.getElementById('username').value = savedUser;
+    document.getElementById('password').value = savedPass;
+    document.getElementById('ingatSaya').checked = true;
+  }
+});
+    
     let NAMA_PETUGAS_LOGGED_IN = "";
     let CABANG_TERVERIFIKASI = "Belum Diketahui";
     let KOORDINAT_TEREKAM = "0,0";
@@ -226,28 +238,39 @@
     let MASTER_DATA_LAPORAN_BOSS = [];
     let FILTER_CABANG_AKTIF = "ALL";
 
-    // --- LOGIN ENGINE ---
-    function eksekusiKoneksiJSONP() {
-      const user = document.getElementById('username').value;
-      const pass = document.getElementById('password').value;
+    // --- LENGKAPI FUNGSI LOGIN ENGINE ---
+function eksekusiKoneksiJSONP() {
+  const user = document.getElementById('username').value;
+  const pass = document.getElementById('password').value;
+  const ingatSayaChecked = document.getElementById('ingatSaya').checked;
 
-      if(!user || !pass) {
-        Swal.fire('Perhatian', 'Username dan password wajib diisi.', 'warning');
-        return;
-      }
+  if(!user || !pass) {
+    Swal.fire('Perhatian', 'Username dan password wajib diisi.', 'warning');
+    return;
+  }
 
-      Swal.fire({ title: 'Memeriksa Akses...', text: 'Menghubungkan ke server pusat...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+  // JIKA CHECKBOX DICENTANG, SIMPAN KE STORAGE HP
+  if (ingatSayaChecked) {
+    localStorage.setItem("aladdin_user", user.trim());
+    localStorage.setItem("aladdin_pass", pass.trim());
+  } else {
+    // JIKA TIDAK DICENTANG, HAPUS MEMORI TERSIMPAN
+    localStorage.removeItem("aladdin_user");
+    localStorage.removeItem("aladdin_pass");
+  }
 
-      if (user.toLowerCase() === "admin" && pass === "aladdin123") {
-        IS_ADMIN_OPNAME = true;
-      } else {
-        IS_ADMIN_OPNAME = false;
-      }
+  Swal.fire({ title: 'Memeriksa Akses...', text: 'Menghubungkan ke server pusat...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
-      const scriptBypass = document.createElement('script');
-      scriptBypass.src = `${WEB_APP_URL}?action=login&username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}&callback=responLoginPusat`;
-      document.body.appendChild(scriptBypass);
-    }
+  if (user.toLowerCase() === "admin" && pass === "aladdin123") {
+    IS_ADMIN_OPNAME = true;
+  } else {
+    IS_ADMIN_OPNAME = false;
+  }
+
+  const scriptBypass = document.createElement('script');
+  scriptBypass.src = `${WEB_APP_URL}?action=login&username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}&callback=responLoginPusat`;
+  document.body.appendChild(scriptBypass);
+}
 
     function responLoginPusat(res) {
       Swal.close();
