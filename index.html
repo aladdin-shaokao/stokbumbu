@@ -388,10 +388,16 @@
 
         const linkFoto = item.foto ? item.foto : "https://placehold.co/100x100/1f2937/dfb15b?text=No+Image";
 
+        // DI SINI PERUBAHANNYA: Menambahkan style cursor & onclick pada tag <img>
         const barisHtml = `
           <tr>
             <td class="text-center">
-              <img src="${linkFoto}" class="thumb-bumbu" alt="Bumbu" onerror="this.src='https://placehold.co/100x100/1f2937/dfb15b?text=Bumbu'">
+              <img src="${linkFoto}" 
+                   class="thumb-bumbu" 
+                   alt="Bumbu" 
+                   onerror="this.src='https://placehold.co/100x100/1f2937/dfb15b?text=Bumbu'" 
+                   style="cursor: pointer; border: 1px solid #374151;" 
+                   onclick="bukaDetailFotoBoss('${item.nama}', '${linkFoto}', '${item.barcode}')">
             </td>
             <td>
               <div class="fw-bold text-white">${item.nama}</div>
@@ -410,6 +416,84 @@
       document.getElementById('lblJumlahItemBoss').innerText = `${dataDisaring.length} Item`;
     }
 
+    // --- POPUP DETAIL FOTO & RIWAYAT LOG TRANSAKSI UNTUK BOSS ---
+    function bukaDetailFotoBoss(namaBumbu, fotoLink, kodeBarcode) {
+      // 1. Filter log transaksi khusus untuk bumbu ini berdasarkan Barcode
+      let historiLog = DATA_LOG_GLOBAL.filter(log => String(log.Kode_Barcode || log.kode_barcode || '').trim() === String(kodeBarcode).trim());
+
+      // Urutkan tanggal dari yang paling baru di atas
+      historiLog.sort((a, b) => new Date(b.Timestamp || b.timestamp) - new Date(a.Timestamp || a.timestamp));
+
+      // 2. Buat tabel riwayat log dengan tema gelap elegan
+      let tabelHTML = `
+        <div style="max-height: 180px; overflow-y: auto; margin-top: 15px; border-radius: 8px; border: 1px solid #374151;">
+          <table class="table table-sm table-dark table-borderless" style="font-size: 11px; text-align: left; margin-bottom: 0; background-color: #111827;">
+            <thead style="background-color: #1f2937; color: #dfb15b; position: sticky; top: 0; z-index: 10;">
+              <tr>
+                <th style="padding: 6px 8px;">Waktu</th>
+                <th style="padding: 6px 8px;">Petugas</th>
+                <th style="padding: 6px 8px;">Aktivitas</th>
+                <th style="padding: 6px 8px; text-align: center;">Jml</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      if (historiLog.length > 0) {
+        historiLog.forEach(log => {
+          let tglRaw = log.Timestamp || log.timestamp;
+          let tanggal = "";
+          if (tglRaw) {
+            try {
+              tanggal = new Date(tglRaw).toLocaleString('id-ID', {
+                day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+              });
+            } catch(e) { tanggal = tglRaw; }
+          }
+          
+          let petugas = log['Nama Petugas'] || log.nama_petugas || "Petugas";
+          let jenis = log['Jenis Stok'] || log.jenis_stok || "LOG";
+          let jumlah = log.Jumlah !== undefined ? log.Jumlah : (log.jumlah !== undefined ? log.jumlah : 0);
+
+          let warnaAktivitas = "text-white";
+          if (jenis === "MASUK") warnaAktivitas = "text-success";
+          if (jenis === "KELUAR") warnaAktivitas = "text-danger";
+          if (jenis === "STOK FISIK") warnaAktivitas = "text-info";
+
+          tabelHTML += `
+            <tr style="border-bottom: 1px solid #374151;">
+              <td style="padding: 6px 8px; color: #9ca3af;">${tanggal}</td>
+              <td style="padding: 6px 8px; color: #f3f4f6;">${petugas}</td>
+              <td style="padding: 6px 8px;" class="${warnaAktivitas}"><strong>${jenis}</strong></td>
+              <td style="padding: 6px 8px; text-align: center; color: #dfb15b; font-weight: bold;">${jumlah}</td>
+            </tr>
+          `;
+        });
+      } else {
+        tabelHTML += `<tr><td colspan="4" class="text-center text-muted" style="padding: 12px;">Tidak ada riwayat log untuk bumbu ini</td></tr>`;
+      }
+
+      tabelHTML += `</tbody></table></div>`;
+
+      // 3. Eksekusi Jendela Modal SweetAlert2 (Tema Hitam-Emas Executive)
+      Swal.fire({
+        title: `<span style="font-size: 16px; color: #ffffff; font-weight: bold;">${namaBumbu}</span><br><span style="font-size: 11px; color: #9ca3af; letter-spacing: 0.5px;">ID Barcode: ${kodeBarcode}</span>`,
+        background: '#1f2937',
+        html: `
+          <div style="text-align: center;">
+            <img src="${fotoLink}" style="width: 100%; max-height: 260px; object-fit: contain; border-radius: 10px; border: 1px solid #374151; background-color: #111827;">
+            <div style="text-align: left; margin-top: 15px; font-size: 12px; color: #dfb15b; font-weight: 700; letter-spacing: 0.5px;">
+              <i class="fas fa-history me-1"></i> RANGKUMAN RIWAYAT LOG DATA
+            </div>
+            ${tabelHTML}
+          </div>
+        `,
+        showCloseButton: true,
+        showConfirmButton: false,
+        focusConfirm: false
+      });
+    }
+    
     // --- ENGINE GPS PETUGAS ---
     function prosesHitungGPSFisik(cabangList) {
       if (navigator.geolocation) {
