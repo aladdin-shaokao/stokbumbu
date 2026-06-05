@@ -11,43 +11,43 @@
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
-    body { background-color: #0b0f17; font-family: Arial, sans-serif; color: #f3f4f6; margin: 0; padding: 0; } [cite: 1, 2]
-    .logo-container { text-align: center; margin-top: 0px; margin-bottom: -20px; } [cite: 2, 3]
-    .logo-img { max-height: 240px; width: 85%; max-width: 250px; object-fit: contain; display: block; margin: 0 auto; } [cite: 3, 4]
-    .card-custom { max-width: 100%; width: 420px; margin: 0 auto 20px auto; border-radius: 16px; background-color: #1f2937; border: 1px solid #374151; box-shadow: 0 12px 30px rgba(0,0,0,0.5); overflow: hidden; } [cite: 4, 5, 6]
-    .card-header-brand { background: linear-gradient(135deg, #dc2626, #991b1b); padding: 24px; text-align: center; border-bottom: 1px solid #374151; } [cite: 6]
-    .brand-logo { font-size: 24px; font-weight: 800; letter-spacing: 1.5px; color: #ffffff; } [cite: 7]
-    .text-aladdin-gold { color: #dfb15b !important; } [cite: 8]
-    .form-label-custom { font-size: 12px; font-weight: 700; letter-spacing: 1px; margin-bottom: 6px; } [cite: 8, 9]
-    .form-control-dark { background-color: #111827; border: 1px solid #4b5563; color: #dfb15b !important; font-weight: 600; font-size: 16px; } [cite: 9, 10]
-    .btn-danger-custom { background-color: #dc2626; color: white; border: none; font-weight: 700; font-size: 16px; transition: 0.2s; } [cite: 10, 11]
-    .btn-danger-custom:hover { background-color: #b91c1c; } [cite: 11]
+    body { background-color: #0b0f17; font-family: Arial, sans-serif; color: #f3f4f6; margin: 0; padding: 0; }
+    .logo-container { text-align: center; margin-top: 0px; margin-bottom: -20px; }
+    .logo-img { max-height: 240px; width: 85%; max-width: 250px; object-fit: contain; display: block; margin: 0 auto; }
+    .card-custom { max-width: 100%; width: 420px; margin: 0 auto 20px auto; border-radius: 16px; background-color: #1f2937; border: 1px solid #374151; box-shadow: 0 12px 30px rgba(0,0,0,0.5); overflow: hidden; }
+    .card-header-brand { background: linear-gradient(135deg, #dc2626, #991b1b); padding: 24px; text-align: center; border-bottom: 1px solid #374151; }
+    .brand-logo { font-size: 24px; font-weight: 800; letter-spacing: 1.5px; color: #ffffff; }
+    .text-aladdin-gold { color: #dfb15b !important; }
+    .form-label-custom { font-size: 12px; font-weight: 700; letter-spacing: 1px; margin-bottom: 6px; }
+    .form-control-dark { background-color: #111827; border: 1px solid #4b5563; color: #dfb15b !important; font-weight: 600; font-size: 16px; }
+    .btn-danger-custom { background-color: #dc2626; color: white; border: none; font-weight: 700; font-size: 16px; transition: 0.2s; }
+    .btn-danger-custom:hover { background-color: #b91c1c; }
     
-    .header-dashboard { background: linear-gradient(135deg, #dc2626, #991b1b); padding: 20px; border-bottom: 3px solid #dfb15b; } [cite: 12]
-    .btn-menu { padding: 18px; font-weight: 800; font-size: 15px; border-radius: 12px; border: 2px solid transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.2s; opacity: 0.4; } [cite: 13]
-    .btn-stok-masuk { background-color: #10b981; color: white; } [cite: 14]
-    .btn-stok-keluar { background-color: #ef4444; color: white; } [cite: 15]
-    .btn-stok-awal { background-color: #3b82f6; color: white; } [cite: 15, 16]
-    .btn-stok-fisik { background-color: #06b6d4; color: white; } [cite: 16]
+    .header-dashboard { background: linear-gradient(135deg, #dc2626, #991b1b); padding: 20px; border-bottom: 3px solid #dfb15b; }
+    .btn-menu { padding: 18px; font-weight: 800; font-size: 15px; border-radius: 12px; border: 2px solid transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.2s; opacity: 0.4; }
+    .btn-stok-masuk { background-color: #10b981; color: white; }
+    .btn-stok-keluar { background-color: #ef4444; color: white; }
+    .btn-stok-awal { background-color: #3b82f6; color: white; }
+    .btn-stok-fisik { background-color: #06b6d4; color: white; }
     
-    .btn-menu.active-btn { opacity: 1 !important; border-color: #ffffff !important; box-shadow: 0 6px 15px rgba(255,255,255,0.2); transform: scale(1.02); } [cite: 17]
+    .btn-menu.active-btn { opacity: 1 !important; border-color: #ffffff !important; box-shadow: 0 6px 15px rgba(255,255,255,0.2); transform: scale(1.02); }
     
-    .photo-box { border: 2px dashed #dc2626; border-radius: 10px; padding: 25px; text-align: center; background-color: #111827; } [cite: 18]
-    #kotakLiveScanner { width: 100%; max-width: 380px; margin: 12px auto; display: none; border: 3px solid #dfb15b; border-radius: 12px; overflow: hidden; background-color: #000; } [cite: 19, 20]
-    .product-preview-box { background-color: #111827; border: 2px solid #dfb15b; border-radius: 12px; padding: 15px; margin-top: 12px; text-align: center; display: none; } [cite: 21]
-    .product-preview-img { max-width: 100%; max-height: 220px; border-radius: 8px; border: 1px solid #374151; object-fit: contain; } [cite: 22]
+    .photo-box { border: 2px dashed #dc2626; border-radius: 10px; padding: 25px; text-align: center; background-color: #111827; }
+    #kotakLiveScanner { width: 100%; max-width: 380px; margin: 12px auto; display: none; border: 3px solid #dfb15b; border-radius: 12px; overflow: hidden; background-color: #000; }
+    .product-preview-box { background-color: #111827; border: 2px solid #dfb15b; border-radius: 12px; padding: 15px; margin-top: 12px; text-align: center; display: none; }
+    .product-preview-img { max-width: 100%; max-height: 220px; border-radius: 8px; border: 1px solid #374151; object-fit: contain; }
 
     /* CSS Executive Dashboard Boss */
-    .boss-scorecard { background-color: #1f2937; border-radius: 12px; border: 1px solid #374151; padding: 15px; text-align: center; } [cite: 23]
-    .boss-table-container { background-color: #1f2937; border-radius: 12px; border: 1px solid #374151; padding: 15px; overflow-x: auto; } [cite: 24]
-    .table-boss { color: #f3f4f6; vertical-align: middle; } [cite: 25]
-    .table-boss th { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #dfb15b; border-bottom: 2px solid #374151; } [cite: 26]
-    .table-boss td { border-bottom: 1px solid #374151; font-size: 14px; } [cite: 27]
-    .thumb-bumbu { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #4b5563; background-color: #111827; } [cite: 28]
-    .badge-kritis { background-color: #dc2626; color: white; font-weight: bold; font-size: 11px; } [cite: 29]
-    .badge-aman { background-color: #10b981; color: white; font-weight: bold; font-size: 11px; } [cite: 30]
-    .text-selisih-minus { color: #ef4444; font-weight: bold; } [cite: 31]
-    .text-selisih-aman { color: #10b981; font-weight: bold; } [cite: 31, 32]
+    .boss-scorecard { background-color: #1f2937; border-radius: 12px; border: 1px solid #374151; padding: 15px; text-align: center; }
+    .boss-table-container { background-color: #1f2937; border-radius: 12px; border: 1px solid #374151; padding: 15px; overflow-x: auto; }
+    .table-boss { color: #f3f4f6; vertical-align: middle; }
+    .table-boss th { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #dfb15b; border-bottom: 2px solid #374151; }
+    .table-boss td { border-bottom: 1px solid #374151; font-size: 14px; }
+    .thumb-bumbu { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #4b5563; background-color: #111827; }
+    .badge-kritis { background-color: #dc2626; color: white; font-weight: bold; font-size: 11px; }
+    .badge-aman { background-color: #10b981; color: white; font-weight: bold; font-size: 11px; }
+    .text-selisih-minus { color: #ef4444; font-weight: bold; }
+    .text-selisih-aman { color: #10b981; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -62,661 +62,653 @@
         <div class="small text-white-50 text-uppercase" style="font-size: 11px; letter-spacing: 1px; margin-top: 4px;">Control Centre</div>
       </div>
       <div class="card-body p-4">
+        <!-- INPUT USERNAME DENGAN FITUR MULTI-ACCOUNT DATALIST -->
         <div class="mb-3">
-          <label class="form-label-custom text-aladdin-gold">USERNAME PETUGAS / BOSS</label> [cite: 33]
-          <input type="text" id="username" list="daftarAkunTersimpan" class="form-control form-control-dark py-2.5" placeholder="Masukkan nama pengguna" oninput="cekAutofillPassword(this.value)"> [cite: 33]
+          <label class="form-label-custom text-aladdin-gold">USERNAME PETUGAS / BOSS</label>
+          <input type="text" id="username" list="daftarAkunTersimpan" class="form-control form-control-dark py-2.5" placeholder="Masukkan nama pengguna" oninput="cekAutofillPassword(this.value)">
           <datalist id="daftarAkunTersimpan">
-            </datalist>
+            <!-- Daftar nama petugas yang pernah login akan muncul otomatis di sini -->
+          </datalist>
         </div>
        
+        <!-- INPUT PASSWORD -->
         <div class="mb-3">
-          <label class="form-label-custom text-aladdin-gold">PASSWORD</label> [cite: 34]
-          <input type="password" id="password" class="form-control form-control-dark py-2.5" placeholder="Masukkan kata sandi"> [cite: 34]
+          <label class="form-label-custom text-aladdin-gold">PASSWORD</label>
+          <input type="password" id="password" class="form-control form-control-dark py-2.5" placeholder="Masukkan kata sandi">
         </div>
 
+        <!-- CHECKBOX INGAT SAYA -->
         <div class="mb-4 form-check text-start">
-          <input type="checkbox" class="form-check-input" id="ingatSaya" style="cursor: pointer; background-color: #111827; border-color: #4b5563;"> [cite: 34, 35]
-          <label class="form-check-label small text-white-50" for="ingatSaya" style="cursor: pointer; font-weight: 600;">Ingat Username & Password</label> [cite: 35, 36]
+          <input type="checkbox" class="form-check-input" id="ingatSaya" style="cursor: pointer; background-color: #111827; border-color: #4b5563;">
+          <label class="form-check-label small text-white-50" for="ingatSaya" style="cursor: pointer; font-weight: 600;">Ingat Username & Password</label>
         </div>
         
-        <button onclick="eksekusiKoneksiJSONP()" class="btn btn-danger-custom w-100 py-2.5 text-uppercase">Masuk Sistem</button> [cite: 36]
+        <button onclick="eksekusiKoneksiJSONP()" class="btn btn-danger-custom w-100 py-2.5 text-uppercase">Masuk Sistem</button>
       </div>
     </div>
   </div>
 
-  <div id="halamanDashboard" style="display: none;"> [cite: 36]
+  <div id="halamanDashboard" style="display: none;">
     <div class="header-dashboard text-center">
-      <h4 class="fw-bold text-white mb-1">Halo, <span id="namaPetugasAktif">Petugas</span></h4> [cite: 36]
-      <p class="small text-white-50 mb-0">Aladdin Shaokao Inventory System</p> [cite: 36]
+      <h4 class="fw-bold text-white mb-1">Halo, <span id="namaPetugasAktif">Petugas</span></h4>
+      <p class="small text-white-50 mb-0">Aladdin Shaokao Inventory System</p>
     </div>
 
-    <div class="container px-3 pb-5"> [cite: 36]
-      <div class="mt-4"> [cite: 36]
-        <div id="gpsStatusBox" class="bg-secondary text-white p-3 rounded text-center fw-bold small"> [cite: 37]
-          <i class="fas fa-spinner fa-spin me-2"></i> Memverifikasi Jarak Cabang Aktual... [cite: 37]
+    <div class="container px-3 pb-5">
+      <div class="mt-4">
+        <div id="gpsStatusBox" class="bg-secondary text-white p-3 rounded text-center fw-bold small">
+          <i class="fas fa-spinner fa-spin me-2"></i> Memverifikasi Jarak Cabang Aktual...
         </div>
       </div>
 
-      <div class="mt-4" id="menuSistem" style="display: none;"> [cite: 37]
-        <div class="row g-2"> [cite: 37]
-          <div class="col-6"> [cite: 37]
-            <button id="btnStokMasukMenu" onclick="bukaFormTrans('MASUK')" class="btn btn-menu btn-stok-masuk w-100"> [cite: 37]
-              <i class="fas fa-box-open d-block mb-1 fa-lg"></i> STOK MASUK [cite: 38]
+      <div class="mt-4" id="menuSistem" style="display: none;">
+        <div class="row g-2">
+          <div class="col-6">
+            <button id="btnStokMasukMenu" onclick="bukaFormTrans('MASUK')" class="btn btn-menu btn-stok-masuk w-100">
+              <i class="fas fa-box-open d-block mb-1 fa-lg"></i> STOK MASUK
             </button>
           </div>
-          <div class="col-6"> [cite: 38]
-            <button id="btnStokKeluarMenu" onclick="bukaFormTrans('KELUAR')" class="btn btn-menu btn-stok-keluar w-100"> [cite: 38]
-              <i class="fas fa-shipping-fast d-block mb-1 fa-lg"></i> STOK KELUAR [cite: 38]
+          <div class="col-6">
+            <button id="btnStokKeluarMenu" onclick="bukaFormTrans('KELUAR')" class="btn btn-menu btn-stok-keluar w-100">
+              <i class="fas fa-shipping-fast d-block mb-1 fa-lg"></i> STOK KELUAR
             </button>
           </div>
-          <div class="col-6" id="wrapperStokAwal" style="display: none;"> [cite: 39]
-            <button id="btnStokAwalMenu" onclick="bukaFormTrans('STOK AWAL')" class="btn btn-menu btn-stok-awal w-100"> [cite: 39]
-              <i class="fas fa-history d-block mb-1 fa-lg"></i> STOK AWAL [cite: 39]
+          <div class="col-6" id="wrapperStokAwal" style="display: none;">
+            <button id="btnStokAwalMenu" onclick="bukaFormTrans('STOK AWAL')" class="btn btn-menu btn-stok-awal w-100">
+              <i class="fas fa-history d-block mb-1 fa-lg"></i> STOK AWAL
             </button>
           </div>
-          <div class="col-6" id="wrapperStokFisik" style="display: none;"> [cite: 39, 40]
-            <button id="btnStokFisikMenu" onclick="bukaFormTrans('STOK FISIK')" class="btn btn-menu btn-stok-fisik w-100"> [cite: 40]
-              <i class="fas fa-calculator d-block mb-1 fa-lg"></i> STOK FISIK [cite: 40]
+          <div class="col-6" id="wrapperStokFisik" style="display: none;">
+            <button id="btnStokFisikMenu" onclick="bukaFormTrans('STOK FISIK')" class="btn btn-menu btn-stok-fisik w-100">
+              <i class="fas fa-calculator d-block mb-1 fa-lg"></i> STOK FISIK
             </button>
           </div>
         </div>
       </div>
 
-      <div id="areaFormTransaksi" class="card p-4 mt-4 d-none" style="background-color: #1f2937; border: 1px solid #374151; border-radius: 12px;"> [cite: 40, 41]
-        <h5 id="judulForm" class="fw-bold text-uppercase text-center mb-4">FORM TRANSAKSI</h5> [cite: 41]
-        <form id="formTransaksi" onsubmit="kirimDataTransaksi(event)"> [cite: 41]
-          <input type="hidden" id="jenisTransaksi"> [cite: 41]
-          <div class="mb-3"> [cite: 41]
-            <label class="form-label small fw-bold text-aladdin-gold">SCAN BARCODE / QR BUMBU (LIVE CAMERA)</label> [cite: 41]
-            <div class="input-group"> [cite: 41]
-              <input type="text" id="barcodeBumbu" class="form-control form-control-dark" placeholder="Ketuk Mulai Live Scan..." required readonly> [cite: 42]
-              <button class="btn btn-danger fw-bold" type="button" id="btnTriggerScanner" onclick="toggleLiveScanner()"> [cite: 42]
-                <i class="fas fa-qrcode me-1"></i> Mulai Scan [cite: 42]
+      <div id="areaFormTransaksi" class="card p-4 mt-4 d-none" style="background-color: #1f2937; border: 1px solid #374151; border-radius: 12px;">
+        <h5 id="judulForm" class="fw-bold text-uppercase text-center mb-4">FORM TRANSAKSI</h5>
+        <form id="formTransaksi" onsubmit="kirimDataTransaksi(event)">
+          <input type="hidden" id="jenisTransaksi">
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-aladdin-gold">SCAN BARCODE / QR BUMBU (LIVE CAMERA)</label>
+            <div class="input-group">
+              <input type="text" id="barcodeBumbu" class="form-control form-control-dark" placeholder="Ketuk Mulai Live Scan..." required readonly>
+              <button class="btn btn-danger fw-bold" type="button" id="btnTriggerScanner" onclick="toggleLiveScanner()">
+                <i class="fas fa-qrcode me-1"></i> Mulai Scan
               </button>
             </div>
-            <div id="kotakLiveScanner"></div> [cite: 42]
-            <div id="previewBarangBox" class="product-preview-box"> [cite: 43]
-              <div class="small text-white-50 mb-2">PREVIEW PRODUK BUMBU</div> [cite: 43]
-              <img id="imgPreviewBarang" src="" class="product-preview-img" alt="Preview"> [cite: 43]
+            <div id="kotakLiveScanner"></div>
+            <div id="previewBarangBox" class="product-preview-box">
+              <div class="small text-white-50 mb-2">PREVIEW PRODUK BUMBU</div>
+              <img id="imgPreviewBarang" src="" class="product-preview-img" alt="Preview">
             </div>
           </div>
-          <div class="mb-3"> [cite: 43]
-            <label id="labelJumlah" class="form-label small fw-bold text-aladdin-gold">JUMLAH STOK</label> [cite: 43]
-            <input type="number" id="jumlahBumbu" class="form-control form-control-dark py-2" placeholder="Masukkan angka jumlah" required> [cite: 44]
+          <div class="mb-3">
+            <label id="labelJumlah" class="form-label small fw-bold text-aladdin-gold">JUMLAH STOK</label>
+            <input type="number" id="jumlahBumbu" class="form-control form-control-dark py-2" placeholder="Masukkan angka jumlah" required>
           </div>
-          <div class="mb-4"> [cite: 44]
-            <label class="form-label small fw-bold text-aladdin-gold">AMBIL GAMBAR FISIK BUMBU</label> [cite: 44]
-            <div class="photo-box" onclick="document.getElementById('fileFotoFisik').click()" style="cursor: pointer;"> [cite: 44]
-              <i class="fas fa-camera-retro fa-2x text-danger mb-2"></i> [cite: 44]
-              <div class="small fw-bold text-uppercase text-danger" id="textStatusFoto">TAP TO CAPTURE PHOTO</div> [cite: 45]
-              <input type="file" id="fileFotoFisik" accept="image/*" capture="environment" style="display: none;" onchange="fotoBerhasilDiambil(this)"> [cite: 45]
+          <div class="mb-4">
+            <label class="form-label small fw-bold text-aladdin-gold">AMBIL GAMBAR FISIK BUMBU</label>
+            <div class="photo-box" onclick="document.getElementById('fileFotoFisik').click()" style="cursor: pointer;">
+              <i class="fas fa-camera-retro fa-2x text-danger mb-2"></i>
+              <div class="small fw-bold text-uppercase text-danger" id="textStatusFoto">TAP TO CAPTURE PHOTO</div>
+              <input type="file" id="fileFotoFisik" accept="image/*" capture="environment" style="display: none;" onchange="fotoBerhasilDiambil(this)">
             </div>
           </div>
-          <button type="submit" id="btnSubmitLaporan" class="btn btn-warning w-100 py-2.5 fw-bold text-uppercase" style="font-size: 16px;">Kirim Laporan Stok</button> [cite: 45]
+          <button type="submit" id="btnSubmitLaporan" class="btn btn-warning w-100 py-2.5 fw-bold text-uppercase" style="font-size: 16px;">Kirim Laporan Stok</button>
         </form>
       </div>
     </div>
   </div>
 
-  <div id="halamanBoss" style="display: none;"> [cite: 45, 46]
-    <div class="header-dashboard text-center d-flex justify-content-between align-items-center px-4"> [cite: 46]
-      <div class="text-start"> [cite: 46]
-        <h4 class="fw-bold text-white mb-0" style="letter-spacing: 0.5px;">EXECUTIVE MONITOR</h4> [cite: 46]
-        <p class="small text-white-50 mb-0" style="font-size: 12px;">Selamat Datang, <span id="namaBossAktif" class="text-aladdin-gold fw-bold">Boss</span></p> [cite: 46]
+  <div id="halamanBoss" style="display: none;">
+    <div class="header-dashboard text-center d-flex justify-content-between align-items-center px-4">
+      <div class="text-start">
+        <h4 class="fw-bold text-white mb-0" style="letter-spacing: 0.5px;">EXECUTIVE MONITOR</h4>
+        <p class="small text-white-50 mb-0" style="font-size: 12px;">Selamat Datang, <span id="namaBossAktif" class="text-aladdin-gold fw-bold">Boss</span></p>
       </div>
-      <button onclick="logoutSistem()" class="btn btn-sm btn-outline-light fw-bold px-3"><i class="fas fa-sign-out-alt me-1"></i> Keluar</button> [cite: 46]
+      <button onclick="logoutSistem()" class="btn btn-sm btn-outline-light fw-bold px-3"><i class="fas fa-sign-out-alt me-1"></i> Keluar</button>
     </div>
 
-    <div class="container px-3 pb-5 mt-4"> [cite: 46]
-      <div class="mb-4 d-flex justify-content-center"> [cite: 46]
-        <div class="btn-group w-100" style="max-width: 400px; border: 1px solid #4b5563;"> [cite: 47]
-          <button type="button" id="btnFilterAll" onclick="filterLaporanBoss('ALL')" class="btn btn-danger btn-sm fw-bold">SEMUA</button> [cite: 47]
-          <button type="button" id="btnFilterPIK" onclick="filterLaporanBoss('PIK 1')" class="btn btn-dark btn-sm fw-bold">PIK 1</button> [cite: 47]
-          <button type="button" id="btnFilterSerpong" onclick="filterLaporanBoss('SERPONG')" class="btn btn-dark btn-sm fw-bold">SERPONG</button> [cite: 47]
+    <div class="container px-3 pb-5 mt-4">
+      <div class="mb-4 d-flex justify-content-center">
+        <div class="btn-group w-100" style="max-width: 400px; border: 1px solid #4b5563;">
+          <button type="button" id="btnFilterAll" onclick="filterLaporanBoss('ALL')" class="btn btn-danger btn-sm fw-bold">SEMUA</button>
+          <button type="button" id="btnFilterPIK" onclick="filterLaporanBoss('PIK 1')" class="btn btn-dark btn-sm fw-bold">PIK 1</button>
+          <button type="button" id="btnFilterSerpong" onclick="filterLaporanBoss('SERPONG')" class="btn btn-dark btn-sm fw-bold">SERPONG</button>
         </div>
       </div>
 
-      <div class="row g-3 mb-4"> [cite: 47]
-        <div class="col-6"> [cite: 47]
-          <div class="boss-scorecard"> [cite: 48]
-            <div class="small text-white-50 fw-bold text-uppercase" style="font-size: 11px;">Bumbu Kritis</div> [cite: 48]
-            <h2 class="fw-bold text-danger my-1" id="bossTotalKritis">0</h2> [cite: 48]
-            <div class="small text-white-50" style="font-size: 10px;">Perlu Restock Segera</div> [cite: 48]
+      <div class="row g-3 mb-4">
+        <div class="col-6">
+          <div class="boss-scorecard">
+            <div class="small text-white-50 fw-bold text-uppercase" style="font-size: 11px;">Bumbu Kritis</div>
+            <h2 class="fw-bold text-danger my-1" id="bossTotalKritis">0</h2>
+            <div class="small text-white-50" style="font-size: 10px;">Perlu Restock Segera</div>
           </div>
         </div>
-        <div class="col-6"> [cite: 48]
-          <div class="boss-scorecard"> [cite: 48]
-            <div class="small text-white-50 fw-bold text-uppercase" style="font-size: 11px;">Selisih Opname</div> [cite: 49]
-            <h2 class="fw-bold text-warning my-1" id="bossTotalSelisih">0</h2> [cite: 49]
-            <div class="small text-white-50" style="font-size: 10px;">Akumulasi Pekan Ini</div> [cite: 49]
+        <div class="col-6">
+          <div class="boss-scorecard">
+            <div class="small text-white-50 fw-bold text-uppercase" style="font-size: 11px;">Selisih Opname</div>
+            <h2 class="fw-bold text-warning my-1" id="bossTotalSelisih">0</h2>
+            <div class="small text-white-50" style="font-size: 10px;">Akumulasi Pekan Ini</div>
           </div>
         </div>
       </div>
 
-      <div class="boss-table-container"> [cite: 49]
-        <div class="d-flex justify-content-between align-items-center mb-3"> [cite: 49]
-          <h6 class="fw-bold text-aladdin-gold mb-0"><i class="fas fa-layer-group me-2"></i>KONTROL STOK & FISIK</h6> [cite: 50]
-          <span class="badge bg-secondary" style="font-size: 10px;" id="lblJumlahItemBoss">0 Item</span> [cite: 50]
+      <div class="boss-table-container">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold text-aladdin-gold mb-0"><i class="fas fa-layer-group me-2"></i>KONTROL STOK & FISIK</h6>
+          <span class="badge bg-secondary" style="font-size: 10px;" id="lblJumlahItemBoss">0 Item</span>
         </div>
-        <table class="table table-dark table-borderless table-boss mb-0"> [cite: 50]
-          <thead> [cite: 50]
-            <tr> [cite: 50]
-              <th class="text-center" style="width: 70px;">Visual</th> [cite: 50]
-              <th>Nama Bumbu</th> [cite: 51]
-              <th class="text-center">Sisa</th> [cite: 51]
-              <th class="text-center">Selisih</th> [cite: 51]
+        <table class="table table-dark table-borderless table-boss mb-0">
+          <thead>
+            <tr>
+              <th class="text-center" style="width: 70px;">Visual</th>
+              <th>Nama Bumbu</th>
+              <th class="text-center">Sisa</th>
+              <th class="text-center">Selisih</th>
             </tr>
           </thead>
-          <tbody id="bodyTabelBoss"> [cite: 51]
+          <tbody id="bodyTabelBoss">
           </tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> [cite: 51]
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
   <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwErjn4LGyikzAQNYErcS4KtjMoc2ABf_z6yRIgreJODZc2nMGaIs45j6f3dqy7Bi-IXw/exec"; 
 
-    let NAMA_PETUGAS_LOGGED_IN = ""; [cite: 52]
-    let CABANG_TERVERIFIKASI = "Belum Diketahui"; [cite: 52]
-    let KOORDINAT_TEREKAM = "0,0"; [cite: 53]
-    let DATA_BASE64_FOTO = ""; [cite: 53]
-    let DATABASE_BARANG_LOCAL = {}; [cite: 53]
-    let objLiveScannerInstance = null; [cite: 53]
-    let IS_ADMIN_OPNAME = false; [cite: 53]
-    let MASTER_DATA_LAPORAN_BOSS = []; [cite: 54]
-    let FILTER_CABANG_AKTIF = "ALL"; [cite: 54]
-    let DATA_LOG_GLOBAL = []; // TAMBAHAN: Wadah global penampung data log agar terhindar dari undefined error
+    let NAMA_PETUGAS_LOGGED_IN = "";
+    let CABANG_TERVERIFIKASI = "Belum Diketahui";
+    let KOORDINAT_TEREKAM = "0,0";
+    let DATA_BASE64_FOTO = "";
+    let DATABASE_BARANG_LOCAL = {};
+    let objLiveScannerInstance = null;
+    let IS_ADMIN_OPNAME = false;
+    let MASTER_DATA_LAPORAN_BOSS = [];
+    let FILTER_CABANG_AKTIF = "ALL";
+    let DATA_LOG_GLOBAL = [];
 
     // --- 1. MEMUAT DAFTAR AKUN SAAT HALAMAN DIBUKA ---
-    document.addEventListener("DOMContentLoaded", function() { [cite: 54]
-      muatPilihanAkunDatalist(); [cite: 54]
-    }); [cite: 54]
-    function muatPilihanAkunDatalist() { [cite: 55]
-      const databaseAkun = JSON.parse(localStorage.getItem("aladdin_multi_accounts")) || {}; [cite: 55]
-      const datalist = document.getElementById("daftarAkunTersimpan"); [cite: 55]
-      datalist.innerHTML = ""; [cite: 56]
+    document.addEventListener("DOMContentLoaded", function() {
+      muatPilihanAkunDatalist();
+    });
+    function muatPilihanAkunDatalist() {
+      const databaseAkun = JSON.parse(localStorage.getItem("aladdin_multi_accounts")) || {};
+      const datalist = document.getElementById("daftarAkunTersimpan");
+      datalist.innerHTML = "";
       
-      for (const username in databaseAkun) { [cite: 56]
-        const option = document.createElement("option"); [cite: 56]
-        option.value = username; [cite: 57]
-        datalist.appendChild(option); [cite: 57]
-      } [cite: 57]
+      for (const username in databaseAkun) {
+        const option = document.createElement("option");
+        option.value = username;
+        datalist.appendChild(option);
+      }
       
-      const terakhirLogin = localStorage.getItem("aladdin_terakhir_user"); [cite: 57]
-      if (terakhirLogin && databaseAkun[terakhirLogin]) { [cite: 58]
-        document.getElementById('username').value = terakhirLogin; [cite: 58]
-        document.getElementById('password').value = databaseAkun[terakhirLogin]; [cite: 58]
-        document.getElementById('ingatSaya').checked = true; [cite: 59]
-      } [cite: 59]
-    } [cite: 59]
+      const terakhirLogin = localStorage.getItem("aladdin_terakhir_user");
+      if (terakhirLogin && databaseAkun[terakhirLogin]) {
+        document.getElementById('username').value = terakhirLogin;
+        document.getElementById('password').value = databaseAkun[terakhirLogin];
+        document.getElementById('ingatSaya').checked = true;
+      }
+    }
 
     // --- 2. DETEKSI PENGGANTIAN USERNAME (AUTOFILL PASSWORD) ---
-    function cekAutofillPassword(usernameInput) { [cite: 59]
-      const userKey = usernameInput.trim().toLowerCase(); [cite: 59]
-      const databaseAkun = JSON.parse(localStorage.getItem("aladdin_multi_accounts")) || {}; [cite: 60]
+    function cekAutofillPassword(usernameInput) {
+      const userKey = usernameInput.trim().toLowerCase();
+      const databaseAkun = JSON.parse(localStorage.getItem("aladdin_multi_accounts")) || {};
       
-      if (databaseAkun[userKey]) { [cite: 60]
-        document.getElementById('password').value = databaseAkun[userKey]; [cite: 60]
-        document.getElementById('ingatSaya').checked = true; [cite: 61]
-      } else { [cite: 61]
-        document.getElementById('password').value = ""; [cite: 61]
-        document.getElementById('ingatSaya').checked = false; [cite: 61]
-      } [cite: 62]
-    } [cite: 62]
+      if (databaseAkun[userKey]) {
+        document.getElementById('password').value = databaseAkun[userKey];
+        document.getElementById('ingatSaya').checked = true;
+      } else {
+        document.getElementById('password').value = "";
+        document.getElementById('ingatSaya').checked = false;
+      }
+    }
 
     // --- 3. EKSEKUSI LOGIN ENGINE & MENYIMPAN REKAMAN MULTI-AKUN ---
-    function eksekusiKoneksiJSONP() { [cite: 62]
-      const user = document.getElementById('username').value; [cite: 62]
-      const pass = document.getElementById('password').value; [cite: 63]
-      const ingatSayaChecked = document.getElementById('ingatSaya').checked; [cite: 63]
+    function eksekusiKoneksiJSONP() {
+      const user = document.getElementById('username').value;
+      const pass = document.getElementById('password').value;
+      const ingatSayaChecked = document.getElementById('ingatSaya').checked;
 
-      if(!user || !pass) { [cite: 63]
-        Swal.fire('Perhatian', 'Username dan password wajib diisi.', 'warning'); [cite: 63]
-        return; [cite: 64]
-      } [cite: 64]
+      if(!user || !pass) {
+        Swal.fire('Perhatian', 'Username dan password wajib diisi.', 'warning');
+        return;
+      }
 
-      const userKey = user.trim().toLowerCase(); [cite: 64]
-      let databaseAkun = JSON.parse(localStorage.getItem("aladdin_multi_accounts")) || {}; [cite: 64]
-      if (rememberMeChecked = ingatSayaChecked) { [cite: 64, 65]
-        databaseAkun[userKey] = pass.trim(); [cite: 65]
-        localStorage.setItem("aladdin_multi_accounts", JSON.stringify(databaseAkun)); [cite: 65]
-        localStorage.setItem("aladdin_terakhir_user", user.trim()); [cite: 65]
-      } else { [cite: 66]
-        delete databaseAkun[userKey]; [cite: 66]
-        localStorage.setItem("aladdin_multi_accounts", JSON.stringify(databaseAkun)); [cite: 66]
-        if(localStorage.getItem("aladdin_terakhir_user") === user.trim()) { [cite: 67]
-          localStorage.removeItem("aladdin_terakhir_user"); [cite: 67]
-        } [cite: 68]
-      } [cite: 68]
+      const userKey = user.trim().toLowerCase();
+      let databaseAkun = JSON.parse(localStorage.getItem("aladdin_multi_accounts")) || {};
+      if (ingatSayaChecked) {
+        databaseAkun[userKey] = pass.trim();
+        localStorage.setItem("aladdin_multi_accounts", JSON.stringify(databaseAkun));
+        localStorage.setItem("aladdin_terakhir_user", user.trim());
+      } else {
+        delete databaseAkun[userKey];
+        localStorage.setItem("aladdin_multi_accounts", JSON.stringify(databaseAkun));
+        if(localStorage.getItem("aladdin_terakhir_user") === user.trim()) {
+          localStorage.removeItem("aladdin_terakhir_user");
+        }
+      }
 
-      Swal.fire({ title: 'Memeriksa Akses...', text: 'Menghubungkan ke server pusat...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } }); [cite: 68]
-      if (user.toLowerCase() === "admin" && pass === "aladdin123") { [cite: 69]
-        IS_ADMIN_OPNAME = true; [cite: 69]
-      } else { [cite: 70]
-        IS_ADMIN_OPNAME = false; [cite: 70]
-      } [cite: 70]
+      Swal.fire({ title: 'Memeriksa Akses...', text: 'Menghubungkan ke server pusat...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+      if (user.toLowerCase() === "admin" && pass === "aladdin123") {
+        IS_ADMIN_OPNAME = true;
+      } else {
+        IS_ADMIN_OPNAME = false;
+      }
 
-      const scriptBypass = document.createElement('script'); [cite: 71]
-      scriptBypass.src = `${WEB_APP_URL}?action=login&username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}&callback=responLoginPusat`; [cite: 71]
-      document.body.appendChild(scriptBypass); [cite: 71]
-    } [cite: 71]
+      const scriptBypass = document.createElement('script');
+      scriptBypass.src = `${WEB_APP_URL}?action=login&username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}&callback=responLoginPusat`;
+      document.body.appendChild(scriptBypass);
+    }
 
-    // REFACTORING LOGOUT SISTEM (TERPUSAT & AMAN)
-    function logoutSistem() { [cite: 72]
-      document.getElementById('halamanBoss').style.display = 'none'; [cite: 72]
-      document.getElementById('halamanDashboard').style.display = 'none'; [cite: 73]
-      document.getElementById('username').value = ""; [cite: 73]
-      document.getElementById('password').value = ""; [cite: 73]
-      document.getElementById('halamanLogin').style.display = 'block'; [cite: 73]
-      muatPilihanAkunDatalist(); [cite: 73]
-    } [cite: 73]
+    function logoutSistem() {
+      document.getElementById('halamanBoss').style.display = 'none';
+      document.getElementById('halamanDashboard').style.display = 'none';
+      document.getElementById('username').value = "";
+      document.getElementById('password').value = "";
+      document.getElementById('halamanLogin').style.display = 'block';
+      muatPilihanAkunDatalist();
+    }
 
-    function responLoginPusat(res) { [cite: 74]
-      Swal.close(); [cite: 74]
-      if(res.status === "success") { [cite: 75]
+    function responLoginPusat(res) {
+      Swal.close();
+      if(res.status === "success") {
         
-        if(res.role === "boss") { [cite: 75]
-          MASTER_DATA_LAPORAN_BOSS = res.laporanStok || []; [cite: 75, 76]
-          DATA_LOG_GLOBAL = res.riwayatLog || res.historiLog || []; // TAMBAHAN: Menangkap array riwayat transaksi dari Apps Script server
-          document.getElementById('namaBossAktif').innerText = res.namaLengkap || "Owner"; [cite: 76]
-          document.getElementById('halamanLogin').style.display = 'none'; [cite: 76]
-          document.getElementById('halamanBoss').style.display = 'block'; [cite: 76]
+        if(res.role === "boss") {
+          MASTER_DATA_LAPORAN_BOSS = res.laporanStok || [];
+          DATA_LOG_GLOBAL = res.riwayatLog || res.historiLog || [];
+          document.getElementById('namaBossAktif').innerText = res.namaLengkap || "Owner";
+          document.getElementById('halamanLogin').style.display = 'none';
+          document.getElementById('halamanBoss').style.display = 'block';
           
-          filterLaporanBoss('ALL'); [cite: 76]
-          return; [cite: 77]
-        } [cite: 77]
+          filterLaporanBoss('ALL');
+          return;
+        }
 
-        NAMA_PETUGAS_LOGGED_IN = res.data.Nama_Lengkap; [cite: 77]
-        DATABASE_BARANG_LOCAL = res.databaseBarang || {}; [cite: 77]
+        NAMA_PETUGAS_LOGGED_IN = res.data.Nama_Lengkap;
+        DATABASE_BARANG_LOCAL = res.databaseBarang || {};
 
-        document.getElementById('namaPetugasAktif').innerText = NAMA_PETUGAS_LOGGED_IN; [cite: 77]
-        document.getElementById('halamanLogin').style.display = 'none'; [cite: 78]
-        document.getElementById('halamanDashboard').style.display = 'block'; [cite: 78]
+        document.getElementById('namaPetugasAktif').innerText = NAMA_PETUGAS_LOGGED_IN;
+        document.getElementById('halamanLogin').style.display = 'none';
+        document.getElementById('halamanDashboard').style.display = 'block';
         
-        const wrapperAwal = document.getElementById('wrapperStokAwal'); [cite: 78]
-        const wrapperFisik = document.getElementById('wrapperStokFisik'); [cite: 78]
-        if (IS_ADMIN_OPNAME) { [cite: 79]
-          wrapperAwal.style.display = 'block'; [cite: 79]
-          wrapperFisik.style.display = 'block'; [cite: 79]
-          Swal.fire({ title: 'Mode Opname Aktif', text: 'Selamat datang, fitur kontrol stok mingguan terbuka.', icon: 'info', timer: 2000, showConfirmButton: false }); [cite: 80]
-        } else { [cite: 81]
-          wrapperAwal.style.display = 'none'; [cite: 81]
-          wrapperFisik.style.display = 'none'; [cite: 82]
-        } [cite: 82]
+        const wrapperAwal = document.getElementById('wrapperStokAwal');
+        const wrapperFisik = document.getElementById('wrapperStokFisik');
+        if (IS_ADMIN_OPNAME) {
+          wrapperAwal.style.display = 'block';
+          wrapperFisik.style.display = 'block';
+          Swal.fire({ title: 'Mode Opname Aktif', text: 'Selamat datang, fitur kontrol stok mingguan terbuka.', icon: 'info', timer: 2000, showConfirmButton: false });
+        } else {
+          wrapperAwal.style.display = 'none';
+          wrapperFisik.style.display = 'none';
+        }
 
-        prosesHitungGPSFisik(res.cabangList); [cite: 82]
-      } else { [cite: 82]
-        Swal.fire('Gagal Masuk', res.message, 'error'); [cite: 82]
-      } [cite: 83]
-    } [cite: 83]
+        prosesHitungGPSFisik(res.cabangList);
+      } else {
+        Swal.fire('Gagal Masuk', res.message, 'error');
+      }
+    }
 
-   // --- ENGINE DASHBOARD KHUSUS BOSS ---
-    function filterLaporanBoss(cabang) { [cite: 83]
-      FILTER_CABANG_AKTIF = cabang; [cite: 83]
-      document.getElementById('btnFilterAll').className = (cabang === 'ALL') ? "btn btn-danger btn-sm fw-bold" : "btn btn-dark btn-sm fw-bold"; [cite: 84]
-      document.getElementById('btnFilterPIK').className = (cabang === 'PIK 1') ? "btn btn-danger btn-sm fw-bold" : "btn btn-dark btn-sm fw-bold"; [cite: 85]
-      document.getElementById('btnFilterSerpong').className = (cabang === 'SERPONG') ? "btn btn-danger btn-sm fw-bold" : "btn btn-dark btn-sm fw-bold"; [cite: 86]
+    function filterLaporanBoss(cabang) {
+      FILTER_CABANG_AKTIF = cabang;
+      document.getElementById('btnFilterAll').className = (cabang === 'ALL') ? "btn btn-danger btn-sm fw-bold" : "btn btn-dark btn-sm fw-bold";
+      document.getElementById('btnFilterPIK').className = (cabang === 'PIK 1') ? "btn btn-danger btn-sm fw-bold" : "btn btn-dark btn-sm fw-bold";
+      document.getElementById('btnFilterSerpong').className = (cabang === 'SERPONG') ? "btn btn-danger btn-sm fw-bold" : "btn btn-dark btn-sm fw-bold";
 
-      let dataDisaring = []; [cite: 86]
-      if(cabang === 'ALL') { [cite: 87]
-        dataDisaring = MASTER_DATA_LAPORAN_BOSS; [cite: 87]
-      } else { [cite: 88]
-        dataDisaring = MASTER_DATA_LAPORAN_BOSS.filter(item => item.cabang.toUpperCase() === cabang.toUpperCase()); [cite: 88]
-      } [cite: 89]
+      let dataDisaring = [];
+      if(cabang === 'ALL') {
+        dataDisaring = MASTER_DATA_LAPORAN_BOSS;
+      } else {
+        dataDisaring = MASTER_DATA_LAPORAN_BOSS.filter(item => item.cabang.toUpperCase() === cabang.toUpperCase());
+      }
 
-      let hitungKritis = 0; [cite: 89]
-      let hitungSelisih = 0; [cite: 89]
-      const tbody = document.getElementById('bodyTabelBoss'); [cite: 89]
-      tbody.innerHTML = ""; [cite: 90]
+      let hitungKritis = 0;
+      let hitungSelisih = 0;
+      const tbody = document.getElementById('bodyTabelBoss');
+      tbody.innerHTML = "";
 
-      dataDisaring.forEach(item => { [cite: 90]
-        if(item.status === "KRITIS") hitungKritis++; [cite: 90]
-        hitungSelisih += (item.selisih || 0); [cite: 90]
+      dataDisaring.forEach(item => {
+        if(item.status === "KRITIS") hitungKritis++;
+        hitungSelisih += (item.selisih || 0);
 
-        const badgeStatus = (item.status === "KRITIS") ? `<span class="badge badge-kritis">KRITIS</span>` : `<span class="badge bg-secondary" style="font-size:10px;">AMAN</span>`; [cite: 90]
-        const classSelisih = (item.selisih < 0) ? "text-selisih-minus" : "text-selisih-aman"; [cite: 90]
-        const teksSelisih = (item.selisih > 0) ? `+${item.selisih}` : item.selisih; [cite: 90]
+        const badgeStatus = (item.status === "KRITIS") ? `<span class="badge badge-kritis">KRITIS</span>` : `<span class="badge bg-secondary" style="font-size:10px;">AMAN</span>`;
+        const classSelisih = (item.selisih < 0) ? "text-selisih-minus" : "text-selisih-aman";
+        const teksSelisih = (item.selisih > 0) ? `+${item.selisih}` : item.selisih;
 
-        let linkFoto = item.foto ? item.foto : "https://placehold.co/100x100/1f2937/dfb15b?text=No+Image"; [cite: 90]
+        let linkFoto = item.foto ? item.foto : "https://placehold.co/100x100/1f2937/dfb15b?text=No+Image";
 
-        // FIX JALUR GAMBAR: Mengubah otomatis domain ImgBB Indonesia yang bermasalah (.co.com -> .co)
-        if (linkFoto.includes("i.ibb.co.com")) { [cite: 91]
-          linkFoto = linkFoto.replace("i.ibb.co.com", "i.ibb.co"); [cite: 91]
-        } [cite: 91]
+        if (linkFoto.includes("i.ibb.co.com")) {
+          linkFoto = linkFoto.replace("i.ibb.co.com", "i.ibb.co");
+        }
 
-        // AMAN DARI ERROR SYNTAL TANDA PETIK: Nama bumbu dibersihkan dengan .replace(/'/g, "\\'")
-        const namaBumbuAman = item.nama ? item.nama.replace(/'/g, "\\'") : "Bumbu Aladdin"; [cite: 91]
+        const namaBumbuAman = item.nama ? item.nama.replace(/'/g, "\\'") : "Bumbu Aladdin";
         const barisHtml = `
           <tr>
             <td class="text-center">
               <img src="${linkFoto}" 
                    class="thumb-bumbu" 
                    alt="Bumbu" 
-                   onerror="this.src='https://placehold.co/100x100/1f2937/dfb15b?text=Bumbu'" [cite: 93]
+                   onerror="this.src='https://placehold.co/100x100/1f2937/dfb15b?text=Bumbu'" 
                    style="cursor: pointer; border: 1px solid #374151;"
-                   onclick="bukaDetailFotoBoss('${namaBumbuAman}', '${linkFoto}', '${item.barcode}')"> [cite: 94]
+                   onclick="bukaDetailFotoBoss('${namaBumbuAman}', '${linkFoto}', '${item.barcode}')">
             </td>
             <td>
-              <div class="fw-bold text-white">${item.nama}</div> [cite: 94]
-              <div class="text-white-50" style="font-size: 11px;">${item.cabang} | ${item.barcode}</div> [cite: 94, 95]
-              <div class="mt-1">${badgeStatus}</div> [cite: 95]
+              <div class="fw-bold text-white">${item.nama}</div> 
+              <div class="text-white-50" style="font-size: 11px;">${item.cabang} | ${item.barcode}</div> 
+              <div class="mt-1">${badgeStatus}</div> 
             </td>
-            <td class="text-center fw-bold text-aladdin-gold">${item.stokAkhir}</td> [cite: 95]
-            <td class="text-center ${classSelisih}">${teksSelisih}</td> [cite: 95]
+            <td class="text-center fw-bold text-aladdin-gold">${item.stokAkhir}</td> 
+            <td class="text-center ${classSelisih}">${teksSelisih}</td> 
           </tr>
-        `; [cite: 96]
-        tbody.innerHTML += barisHtml; [cite: 96]
-      }); [cite: 96]
+        `; 
+        tbody.innerHTML += barisHtml; 
+      }); 
 
-      document.getElementById('bossTotalKritis').innerText = hitungKritis; [cite: 96]
-      document.getElementById('bossTotalSelisih').innerText = (hitungSelisih > 0) ? `+${hitungSelisih}` : hitungSelisih; [cite: 96]
-      document.getElementById('lblJumlahItemBoss').innerText = `${dataDisaring.length} Item`; [cite: 96]
-    } [cite: 97]
+      document.getElementById('bossTotalKritis').innerText = hitungKritis; 
+      document.getElementById('bossTotalSelisih').innerText = (hitungSelisih > 0) ? `+${hitungSelisih}` : hitungSelisih; 
+      document.getElementById('lblJumlahItemBoss').innerText = `${dataDisaring.length} Item`; 
+    } 
 
-    // --- POPUP DETAIL FOTO & RIWAYAT LOG TRANSAKSI UNTUK BOSS ---
-    function bukaDetailFotoBoss(namaBumbu, fotoLink, kodeBarcode) { [cite: 97]
-      // 1. Filter log transaksi khusus untuk bumbu ini berdasarkan Barcode
-      let historiLog = []; [cite: 97]
-      if (typeof DATA_LOG_GLOBAL !== 'undefined' && Array.isArray(DATA_LOG_GLOBAL)) { [cite: 98]
-        historiLog = DATA_LOG_GLOBAL.filter(log => String(log.Kode_Barcode || log.kode_barcode || '').trim() === String(kodeBarcode).trim()); [cite: 98]
-      } [cite: 99]
+    function bukaDetailFotoBoss(namaBumbu, fotoLink, kodeBarcode) { 
+      let historiLog = []; 
+      if (typeof DATA_LOG_GLOBAL !== 'undefined' && Array.isArray(DATA_LOG_GLOBAL)) { 
+        historiLog = DATA_LOG_GLOBAL.filter(log => String(log.Kode_Barcode || log.kode_barcode || '').trim() === String(kodeBarcode).trim()); 
+      } 
 
-      // Urutkan tanggal dari yang paling baru di atas
-      historiLog.sort((a, b) => new Date(b.Timestamp || b.timestamp) - new Date(a.Timestamp || a.timestamp)); [cite: 99]
+      historiLog.sort((a, b) => new Date(b.Timestamp || b.timestamp) - new Date(a.Timestamp || a.timestamp)); 
       
-      // 2. Buat tabel riwayat log dengan tema gelap elegan
       let tabelHTML = `
         <div style="max-height: 180px; overflow-y: auto; margin-top: 15px; border-radius: 8px; border: 1px solid #374151;">
           <table class="table table-sm table-dark table-borderless" style="font-size: 11px; text-align: left; margin-bottom: 0; background-color: #111827;">
             <thead style="background-color: #1f2937; color: #dfb15b; position: sticky; top: 0; z-index: 10;">
               <tr>
-                <th style="padding: 6px 8px;">Waktu</th> [cite: 101]
-                <th style="padding: 6px 8px;">Petugas</th> [cite: 101]
-                <th style="padding: 6px 8px;">Aktivitas</th> [cite: 101]
-                <th style="padding: 6px 8px; text-align: center;">Jml</th> [cite: 101]
+                <th style="padding: 6px 8px;">Waktu</th> 
+                <th style="padding: 6px 8px;">Petugas</th> 
+                <th style="padding: 6px 8px;">Aktivitas</th> 
+                <th style="padding: 6px 8px; text-align: center;">Jml</th> 
               </tr>
             </thead>
             <tbody>
-      `; [cite: 102]
+      `; 
       
-      if (historiLog.length > 0) { [cite: 103]
-        historiLog.forEach(log => { [cite: 103]
-          let tglRaw = log.Timestamp || log.timestamp; [cite: 103]
-          let tanggal = ""; [cite: 103]
-          if (tglRaw) { [cite: 103]
-            try { [cite: 103]
-              tanggal = new Date(tglRaw).toLocaleString('id-ID', { [cite: 103]
-                day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' [cite: 104]
-              }); [cite: 104]
-            } catch(e) { tanggal = tglRaw; } [cite: 104]
-          } [cite: 104]
+      if (historiLog.length > 0) { 
+        historiLog.forEach(log => { 
+          let tglRaw = log.Timestamp || log.timestamp; 
+          let tanggal = ""; 
+          if (tglRaw) { 
+            try { 
+              tanggal = new Date(tglRaw).toLocaleString('id-ID', { 
+                day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' 
+              }); 
+            } catch(e) { tanggal = tglRaw; } 
+          } 
           
-          let petugas = log['Nama Petugas'] || log.nama_petugas || "Petugas"; [cite: 104]
-          let jenis = log['Jenis Stok'] || log.jenis_stok || "LOG"; [cite: 104]
-          let jumlah = log.Jumlah !== undefined ? log.Jumlah : (log.jumlah !== undefined ? log.jumlah : 0); [cite: 105]
+          let petugas = log['Nama Petugas'] || log.nama_petugas || "Petugas"; 
+          let jenis = log['Jenis Stok'] || log.jenis_stok || "LOG"; 
+          let jumlah = log.Jumlah !== undefined ? log.Jumlah : (log.jumlah !== undefined ? log.jumlah : 0); 
 
-          let warnaAktivitas = "text-white"; [cite: 105]
-          if (jenis === "MASUK") warnaAktivitas = "text-success"; [cite: 105]
-          if (jenis === "KELUAR") warnaAktivitas = "text-danger"; [cite: 105]
-          if (jenis === "STOK FISIK" || jenis === "STOK AWAL") warnaAktivitas = "text-info"; [cite: 105]
+          let warnaAktivitas = "text-white"; 
+          if (jenis === "MASUK") warnaAktivitas = "text-success"; 
+          if (jenis === "KELUAR") warnaAktivitas = "text-danger"; 
+          if (jenis === "STOK FISIK" || jenis === "STOK AWAL") warnaAktivitas = "text-info"; 
 
           tabelHTML += `
             <tr style="border-bottom: 1px solid #374151;">
-              <td style="padding: 6px 8px; color: #9ca3af;">${tanggal}</td> [cite: 106, 107]
-              <td style="padding: 6px 8px; color: #f3f4f6;">${petugas}</td> [cite: 107, 108]
-              <td style="padding: 6px 8px;" class="${warnaAktivitas}"><strong>${jenis}</strong></td> [cite: 108]
-              <td style="padding: 6px 8px; text-align: center; color: #dfb15b; font-weight: bold;">${jumlah}</td> [cite: 108, 109]
+              <td style="padding: 6px 8px; color: #9ca3af;">${tanggal}</td> 
+              <td style="padding: 6px 8px; color: #f3f4f6;">${petugas}</td> 
+              <td style="padding: 6px 8px;" class="${warnaAktivitas}"><strong>${jenis}</strong></td> 
+              <td style="padding: 6px 8px; text-align: center; color: #dfb15b; font-weight: bold;">${jumlah}</td> 
             </tr>
-          `; [cite: 109]
-        }); [cite: 109]
-      } else { [cite: 109]
-        tabelHTML += `<tr><td colspan="4" class="text-center text-muted" style="padding: 12px;">Tidak ada riwayat log untuk bumbu ini</td></tr>`; [cite: 109]
-      } [cite: 109]
+          `; 
+        }); 
+      } else { 
+        tabelHTML += `<tr><td colspan="4" class="text-center text-muted" style="padding: 12px;">Tidak ada riwayat log untuk bumbu ini</td></tr>`; 
+      } 
 
-      tabelHTML += `</tbody></table></div>`; [cite: 109]
+      tabelHTML += `</tbody></table></div>`; 
 
-      // 3. Eksekusi Jendela Modal SweetAlert2 (Tema Hitam-Emas Executive)
-      Swal.fire({ [cite: 109]
-        title: `<span style="font-size: 16px; color: #ffffff; font-weight: bold;">${namaBumbu}</span><br><span style="font-size: 11px; color: #9ca3af; letter-spacing: 0.5px;">ID Barcode: ${kodeBarcode}</span>`, [cite: 110]
-        background: '#1f2937', [cite: 110]
+      Swal.fire({ 
+        title: `<span style="font-size: 16px; color: #ffffff; font-weight: bold;">${namaBumbu}</span><br><span style="font-size: 11px; color: #9ca3af; letter-spacing: 0.5px;">ID Barcode: ${kodeBarcode}</span>`, 
+        background: '#1f2937', 
         html: `
           <div style="text-align: center;">
             <img src="${fotoLink}" style="width: 100%; max-height: 260px; object-fit: contain; border-radius: 10px; border: 1px solid #374151; background-color: #111827;">
-            <div style="text-align: left; margin-top: 15px; font-size: 12px; color: #dfb15b; font-weight: 700; letter-spacing: 0.5px;"> [cite: 110, 111]
-              <i class="fas fa-history me-1"></i> RANGKUMAN RIWAYAT LOG DATA [cite: 111]
-            </div> [cite: 111]
-            ${tabelHTML} [cite: 111]
-          </div> [cite: 111]
-        `, [cite: 111]
-        showCloseButton: true, [cite: 111]
-        showConfirmButton: false, [cite: 111]
-        focusConfirm: false [cite: 111]
-      }); [cite: 111]
-    } [cite: 112]
+            <div style="text-align: left; margin-top: 15px; font-size: 12px; color: #dfb15b; font-weight: 700; letter-spacing: 0.5px;"> 
+              <i class="fas fa-history me-1"></i> RANGKUMAN RIWAYAT LOG DATA 
+            </div> 
+            ${tabelHTML} 
+          </div> 
+        `, 
+        showCloseButton: true, 
+        showConfirmButton: false, 
+        focusConfirm: false 
+      }); 
+    } 
     
-    // --- ENGINE GPS PETUGAS ---
-    function prosesHitungGPSFisik(cabangList) { [cite: 112]
-      if (navigator.geolocation) { [cite: 112]
-        navigator.geolocation.getCurrentPosition( [cite: 112]
-          function(pos) { [cite: 112]
-            const latUser = pos.coords.latitude; [cite: 112]
-            const lngUser = pos.coords.longitude; [cite: 112]
-            KOORDINAT_TEREKAM = latUser + "," + lngUser; [cite: 112]
+    function prosesHitungGPSFisik(cabangList) { 
+      if (navigator.geolocation) { 
+        navigator.geolocation.getCurrentPosition( 
+          function(pos) { 
+            const latUser = pos.coords.latitude; 
+            const lngUser = pos.coords.longitude; 
+            KOORDINAT_TEREKAM = latUser + "," + lngUser; 
 
-            if(!cabangList || cabangList.length === 0) { [cite: 113]
-              CABANG_TERVERIFIKASI = "SERPONG"; [cite: 113]
-              kunciStatusSuksesGPS("Cabang: Serpong (Default)"); [cite: 113]
-              return; [cite: 113]
-            } [cite: 113]
+            if(!cabangList || cabangList.length === 0) { 
+              CABANG_TERVERIFIKASI = "SERPONG"; 
+              kunciStatusSuksesGPS("Cabang: Serpong (Default)"); 
+              return; 
+            } 
 
-            let cabangTerdekat = ""; [cite: 113]
-            let jarakTerkecil = Infinity; [cite: 113]
+            let cabangTerdekat = ""; 
+            let jarakTerkecil = Infinity; 
 
-            cabangList.forEach(cb => { [cite: 114]
-              const R = 6371e3; [cite: 114]
-              const phi1 = latUser * Math.PI/180; [cite: 114]
-              const phi2 = cb.lat * Math.PI/180; [cite: 114]
-              const deltaPhi = (cb.lat - latUser) * Math.PI/180; [cite: 114]
-              const deltaLambda = (cb.lng - lngUser) * Math.PI/180; [cite: 115]
+            cabangList.forEach(cb => { 
+              const R = 6371e3; 
+              const phi1 = latUser * Math.PI/180; 
+              const phi2 = cb.lat * Math.PI/180; 
+              const deltaPhi = (cb.lat - latUser) * Math.PI/180; 
+              const deltaLambda = (cb.lng - lngUser) * Math.PI/180; 
 
-              const a = Math.sin(deltaPhi/2) * Math.sin(deltaPhi/2) + [cite: 115]
-                        Math.cos(phi1) * Math.cos(phi2) * [cite: 115]
-                        Math.sin(deltaLambda/2) * Math.sin(deltaLambda/2); [cite: 115]
-              const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); [cite: 116]
-              const jarakMeter = R * c; [cite: 116]
-              if(jarakMeter < jarakTerkecil) { [cite: 117]
-                jarakTerkecil = jarakMeter; [cite: 117]
-                cabangTerdekat = cb.nama; [cite: 118]
-              } [cite: 118]
-            }); [cite: 118]
+              const a = Math.sin(deltaPhi/2) * Math.sin(deltaPhi/2) + 
+                        Math.cos(phi1) * Math.cos(phi2) * 
+                        Math.sin(deltaLambda/2) * Math.sin(deltaLambda/2); 
+              const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+              const jarakMeter = R * c; 
+              if(jarakMeter < jarakTerkecil) { 
+                jarakTerkecil = jarakMeter; 
+                cabangTerdekat = cb.nama; 
+              } 
+            }); 
 
-            CABANG_TERVERIFIKASI = cabangTerdekat; [cite: 118]
-            kunciStatusSuksesGPS("Terdeteksi di Cabang: " + CABANG_TERVERIFIKASI); [cite: 119]
-          }, [cite: 119]
-          function() { kunciStatusGagalGPS(); }, [cite: 119, 120]
-          { enableHighAccuracy: true, timeout: 8000 } [cite: 120]
-        ); [cite: 120]
-      } else { [cite: 121]
-        kunciStatusGagalGPS(); [cite: 122]
-      } [cite: 122]
-    } [cite: 122]
+            CABANG_TERVERIFIKASI = cabangTerdekat; 
+            kunciStatusSuksesGPS("Terdeteksi di Cabang: " + CABANG_TERVERIFIKASI); 
+          }, 
+          function() { kunciStatusGagalGPS(); }, 
+          { enableHighAccuracy: true, timeout: 8000 } 
+        ); 
+      } else { 
+        kunciStatusGagalGPS(); 
+      } 
+    } 
 
-    function kunciStatusSuksesGPS(pesan) { [cite: 122]
-      const box = document.getElementById('gpsStatusBox'); [cite: 122]
-      box.className = "p-3 rounded text-center fw-bold small bg-success text-white"; [cite: 123]
-      box.innerHTML = `<i class="fas fa-check-circle me-2"></i> ${pesan}`; [cite: 123]
-      document.getElementById('menuSistem').style.display = 'block'; [cite: 123]
-    } [cite: 124]
+    function kunciStatusSuksesGPS(pesan) { 
+      const box = document.getElementById('gpsStatusBox'); 
+      box.className = "p-3 rounded text-center fw-bold small bg-success text-white"; 
+      box.innerHTML = `<i class="fas fa-check-circle me-2"></i> ${pesan}`; 
+      document.getElementById('menuSistem').style.display = 'block'; 
+    } 
 
-    function kunciStatusGagalGPS() { [cite: 124]
-      const box = document.getElementById('gpsStatusBox'); [cite: 124]
-      box.className = "p-3 rounded fw-bold small bg-warning text-dark d-flex justify-content-between align-items-center"; [cite: 125]
+    function kunciStatusGagalGPS() { 
+      const box = document.getElementById('gpsStatusBox'); 
+      box.className = "p-3 rounded fw-bold small bg-warning text-dark d-flex justify-content-between align-items-center"; 
       box.innerHTML = `
-        <span><i class="fas fa-exclamation-triangle me-2"></i> GPS Lemah (Gagal Kunci Lokasi)</span> [cite: 126]
-        <button type="button" onclick="bypassGPSSerpong()" class="btn btn-sm btn-dark fw-bold px-2 py-1">Set Serpong</button> [cite: 126]
-      `; [cite: 126]
-      document.getElementById('menuSistem').style.display = 'block'; [cite: 127]
-    } [cite: 127]
+        <span><i class="fas fa-exclamation-triangle me-2"></i> GPS Lemah (Gagal Kunci Lokasi)</span> 
+        <button type="button" onclick="bypassGPSSerpong()" class="btn btn-sm btn-dark fw-bold px-2 py-1">Set Serpong</button> 
+      `; 
+      document.getElementById('menuSistem').style.display = 'block'; 
+    } 
 
-    function bypassGPSSerpong() { [cite: 127]
-      KOORDINAT_TEREKAM = "-6.2475,106.6255"; [cite: 127]
-      CABANG_TERVERIFIKASI = "SERPONG"; [cite: 128]
-      kunciStatusSuksesGPS("Cabang Dikunci Manual: Serpong"); [cite: 128]
-    } [cite: 128]
+    function bypassGPSSerpong() { 
+      KOORDINAT_TEREKAM = "-6.2475,106.6255"; 
+      CABANG_TERVERIFIKASI = "SERPONG"; 
+      kunciStatusSuksesGPS("Cabang Dikunci Manual: Serpong"); 
+    } 
 
-    // --- ENGINE LIVE CAMERA SCANNER ---
-    function toggleLiveScanner() { [cite: 128]
-      const areaVideo = document.getElementById('kotakLiveScanner'); [cite: 128]
-      const btn = document.getElementById('btnTriggerScanner'); [cite: 129]
-      if (objLiveScannerInstance) { matikanKameraLive(); return; } [cite: 129]
+    function toggleLiveScanner() { 
+      const areaVideo = document.getElementById('kotakLiveScanner'); 
+      const btn = document.getElementById('btnTriggerScanner'); 
+      if (objLiveScannerInstance) { matikanKameraLive(); return; } 
 
-      areaVideo.style.display = 'block'; [cite: 129]
-      btn.innerHTML = `<i class="fas fa-stop me-1"></i> Matikan Kamera`; [cite: 130]
-      btn.className = "btn btn-dark fw-bold"; [cite: 130]
+      areaVideo.style.display = 'block'; 
+      btn.innerHTML = `<i class="fas fa-stop me-1"></i> Matikan Kamera`; 
+      btn.className = "btn btn-dark fw-bold"; 
 
-      objLiveScannerInstance = new Html5Qrcode("kotakLiveScanner"); [cite: 130]
-      objLiveScannerInstance.start( [cite: 131]
+      objLiveScannerInstance = new Html5Qrcode("kotakLiveScanner"); 
+      objLiveScannerInstance.start( 
         { facingMode: "environment" }, 
-        { fps: 15, qrbox: { width: 250, height: 250 } }, [cite: 131]
-        function onScanSuccess(decodedText) { [cite: 131]
-          document.getElementById('barcodeBumbu').value = decodedText; [cite: 131]
-          const boxPreview = document.getElementById('previewBarangBox'); [cite: 131]
-          const imgPreview = document.getElementById('imgPreviewBarang'); [cite: 131]
-          if (DATABASE_BARANG_LOCAL[decodedText] && DATABASE_BARANG_LOCAL[decodedText].foto) { [cite: 131]
-            imgPreview.src = DATABASE_BARANG_LOCAL[decodedText].foto; [cite: 132]
-            boxPreview.style.display = 'block'; [cite: 132]
-          } else { boxPreview.style.display = 'none'; } [cite: 132]
-          Swal.fire({ title: 'Terbaca!', icon: 'success', timer: 800, showConfirmButton: false }); [cite: 132]
-          matikanKameraLive(); [cite: 132]
-        }, [cite: 132]
-        function onScanError(err) { } [cite: 132]
-      ).catch(err => { [cite: 132]
-        Swal.fire('Kamera Gagal', 'Pastikan izin akses kamera browser sudah diperbolehkan.', 'error'); [cite: 133]
-        matikanKameraLive(); [cite: 133]
-      }); [cite: 134]
-    } [cite: 134]
+        { fps: 15, qrbox: { width: 250, height: 250 } }, 
+        function onScanSuccess(decodedText) { 
+          document.getElementById('barcodeBumbu').value = decodedText; 
+          const boxPreview = document.getElementById('previewBarangBox'); 
+          const imgPreview = document.getElementById('imgPreviewBarang'); 
+          if (DATABASE_BARANG_LOCAL[decodedText] && DATABASE_BARANG_LOCAL[decodedText].foto) { 
+            imgPreview.src = DATABASE_BARANG_LOCAL[decodedText].foto; 
+            boxPreview.style.display = 'block'; 
+          } else { boxPreview.style.display = 'none'; } 
+          Swal.fire({ title: 'Terbaca!', icon: 'success', timer: 800, showConfirmButton: false }); 
+          matikanKameraLive(); 
+        }, 
+        function onScanError(err) { } 
+      ).catch(err => { 
+        Swal.fire('Kamera Gagal', 'Pastikan izin akses kamera browser sudah diperbolehkan.', 'error'); 
+        matikanKameraLive(); 
+      }); 
+    } 
 
-    function matikanKameraLive() { [cite: 134]
-      const areaVideo = document.getElementById('kotakLiveScanner'); [cite: 134]
-      const btn = document.getElementById('btnTriggerScanner'); [cite: 134]
-      if (objLiveScannerInstance) { [cite: 135]
-        objLiveScannerInstance.stop().then(() => { [cite: 135]
-          objLiveScannerInstance = null; [cite: 135]
-          areaVideo.style.display = 'none'; [cite: 135]
-          btn.innerHTML = `<i class="fas fa-qrcode me-1"></i> Mulai Scan`; [cite: 135]
-          btn.className = "btn btn-danger fw-bold"; [cite: 135]
-        }).catch(() => { [cite: 135]
-          objLiveScannerInstance = null; [cite: 135]
-          areaVideo.style.display = 'none'; [cite: 135, 136]
-        }); [cite: 136]
-      } [cite: 137]
-    } [cite: 137]
+    function matikanKameraLive() { 
+      const areaVideo = document.getElementById('kotakLiveScanner'); 
+      const btn = document.getElementById('btnTriggerScanner'); 
+      if (objLiveScannerInstance) { 
+        objLiveScannerInstance.stop().then(() => { 
+          objLiveScannerInstance = null; 
+          areaVideo.style.display = 'none'; 
+          btn.innerHTML = `<i class="fas fa-qrcode me-1"></i> Mulai Scan`; 
+          btn.className = "btn btn-danger fw-bold"; 
+        }).catch(() => { 
+          objLiveScannerInstance = null; 
+          areaVideo.style.display = 'none'; 
+        }); 
+      } 
+    } 
 
-    // --- HANDLING INTERFACES ---
-    function bukaFormTrans(tipe) { [cite: 137]
-      document.getElementById('jenisTransaksi').value = tipe; [cite: 137]
-      const area = document.getElementById('areaFormTransaksi'); [cite: 138]
-      const judul = document.getElementById('judulForm'); [cite: 138]
-      const lbl = document.getElementById('labelJumlah'); [cite: 138]
+    function bukaFormTrans(tipe) { 
+      document.getElementById('jenisTransaksi').value = tipe; 
+      const area = document.getElementById('areaFormTransaksi'); 
+      const judul = document.getElementById('judulForm'); 
+      const lbl = document.getElementById('labelJumlah'); 
       
-      document.getElementById('btnStokMasukMenu').classList.remove('active-btn'); [cite: 138]
-      document.getElementById('btnStokKeluarMenu').classList.remove('active-btn'); [cite: 138]
-      document.getElementById('btnStokAwalMenu').classList.remove('active-btn'); [cite: 138]
-      document.getElementById('btnStokFisikMenu').classList.remove('active-btn'); [cite: 138]
-      area.classList.remove('d-none'); [cite: 138]
-      if(tipe === 'MASUK') { [cite: 139]
-        document.getElementById('btnStokMasukMenu').classList.add('active-btn'); [cite: 139]
-        judul.innerText = "Form Barang Masuk (Restock)"; [cite: 139]
-        judul.className = "fw-bold text-success text-center mb-4"; [cite: 140]
-        lbl.innerText = "JUMLAH STOK MASUK"; [cite: 140]
-      } else if (tipe === 'KELUAR') { [cite: 141]
-        document.getElementById('btnStokKeluarMenu').classList.add('active-btn'); [cite: 141]
-        judul.innerText = "Form Barang Keluar (Pemakaian)"; [cite: 142]
-        judul.className = "fw-bold text-danger text-center mb-4"; [cite: 142]
-        lbl.innerText = "JUMLAH STOK KELUAR"; [cite: 142]
-      } else if (tipe === 'STOK AWAL') { [cite: 143]
-        document.getElementById('btnStokAwalMenu').classList.add('active-btn'); [cite: 143]
-        judul.innerText = "Form Stok Awal (Opname Mingguan)"; [cite: 144]
-        judul.className = "fw-bold text-primary text-center mb-4"; [cite: 144]
-        lbl.innerText = "SET JUMLAH STOK AWAL BARU"; [cite: 144]
-      } else if (tipe === 'STOK FISIK') { [cite: 145]
-        document.getElementById('btnStokFisikMenu').classList.add('active-btn'); [cite: 145]
-        judul.innerText = "Form Hitung Stok Fisik Dapur"; [cite: 146]
-        judul.className = "fw-bold text-info text-center mb-4"; [cite: 146]
-        lbl.innerText = "JUMLAH FISIK DI DAPUR SAAT INI"; [cite: 147]
-      } [cite: 147]
-      area.scrollIntoView({ behavior: 'smooth' }); [cite: 147]
-    } [cite: 148]
+      document.getElementById('btnStokMasukMenu').classList.remove('active-btn'); 
+      document.getElementById('btnStokKeluarMenu').classList.remove('active-btn'); 
+      document.getElementById('btnStokAwalMenu').classList.remove('active-btn'); 
+      document.getElementById('btnStokFisikMenu').classList.remove('active-btn'); 
+      area.classList.remove('d-none'); 
+      if(tipe === 'MASUK') { 
+        document.getElementById('btnStokMasukMenu').classList.add('active-btn'); 
+        judul.innerText = "Form Barang Masuk (Restock)"; 
+        judul.className = "fw-bold text-success text-center mb-4"; 
+        lbl.innerText = "JUMLAH STOK MASUK"; 
+      } else if (tipe === 'KELUAR') { 
+        document.getElementById('btnStokKeluarMenu').classList.add('active-btn'); 
+        judul.innerText = "Form Barang Keluar (Pemakaian)"; 
+        judul.className = "fw-bold text-danger text-center mb-4"; 
+        lbl.innerText = "JUMLAH STOK KELUAR"; 
+      } else if (tipe === 'STOK AWAL') { 
+        document.getElementById('btnStokAwalMenu').classList.add('active-btn'); 
+        judul.innerText = "Form Stok Awal (Opname Mingguan)"; 
+        judul.className = "fw-bold text-primary text-center mb-4"; 
+        lbl.innerText = "SET JUMLAH STOK AWAL BARU"; 
+      } else if (tipe === 'STOK FISIK') { 
+        document.getElementById('btnStokFisikMenu').classList.add('active-btn'); 
+        judul.innerText = "Form Hitung Stok Fisik Dapur"; 
+        judul.className = "fw-bold text-info text-center mb-4"; 
+        lbl.innerText = "JUMLAH FISIK DI DAPUR SAAT INI"; 
+      } 
+      area.scrollIntoView({ behavior: 'smooth' }); 
+    } 
 
-    function fotoBerhasilDiambil(input) { [cite: 148]
-      if (input.files && input.files[0]) { [cite: 148]
-        const reader = new FileReader(); [cite: 148]
-        document.getElementById('textStatusFoto').innerText = "⚡ SEDANG MEMPROSES FOTO..."; [cite: 149]
-        reader.onload = function(e) { [cite: 149]
-          DATA_BASE64_FOTO = e.target.result; [cite: 149]
-          const statusTxt = document.getElementById('textStatusFoto'); [cite: 150]
-          statusTxt.innerText = "✓ FOTO BERHASIL DIKONFIRMASI"; [cite: 150]
-          statusTxt.className = "small fw-bold text-success"; [cite: 150]
-        }; [cite: 150]
-        reader.readAsDataURL(input.files[0]); [cite: 151]
-      } [cite: 151]
-    } [cite: 151]
+    function fotoBerhasilDiambil(input) { 
+      if (input.files && input.files[0]) { 
+        const reader = new FileReader(); 
+        document.getElementById('textStatusFoto').innerText = "⚡ SEDANG MEMPROSES FOTO..."; 
+        reader.onload = function(e) { 
+          DATA_BASE64_FOTO = e.target.result; 
+          const statusTxt = document.getElementById('textStatusFoto'); 
+          statusTxt.innerText = "✓ FOTO BERHASIL DIKONFIRMASI"; 
+          statusTxt.className = "small fw-bold text-success"; 
+        }; 
+        reader.readAsDataURL(input.files[0]); 
+      } 
+    } 
 
-    function kirimDataTransaksi(e) { [cite: 151]
-      if (e && e.preventDefault) { e.preventDefault(); [cite: 151, 152]
-      } [cite: 152]
-      const btnSubmit = document.getElementById('btnSubmitLaporan'); [cite: 152]
-      if (btnSubmit) { btnSubmit.disabled = true; [cite: 152, 153]
-      } [cite: 153]
+    function kirimDataTransaksi(e) { 
+      if (e && e.preventDefault) { e.preventDefault(); 
+      } 
+      const btnSubmit = document.getElementById('btnSubmitLaporan'); 
+      if (btnSubmit) { btnSubmit.disabled = true; 
+      } 
 
-      Swal.fire({ title: 'Menyimpan...', text: 'Mengirim laporan stok bumbu ke database cloud...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } }); [cite: 154]
-      const payload = { [cite: 154]
-        petugas: NAMA_PETUGAS_LOGGED_IN || "Petugas Aladdin", [cite: 154, 155]
-        cabang: CABANG_TERVERIFIKASI || "Gudang Pusat", [cite: 155, 156]
-        jenisStok: document.getElementById('jenisTransaksi').value, [cite: 156]
-        barcode: document.getElementById('barcodeBumbu').value, [cite: 156]
-        jumlah: parseInt(document.getElementById('jumlahBumbu').value) || 0, [cite: 156, 157]
-        fotoBase64: DATA_BASE64_FOTO || "", [cite: 157, 158]
-        koordinat: KOORDINAT_TEREKAM || "0,0" [cite: 158]
-      }; [cite: 159]
+      Swal.fire({ title: 'Menyimpan...', text: 'Mengirim laporan stok bumbu ke database cloud...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } }); 
+      const payload = { 
+        petugas: NAMA_PETUGAS_LOGGED_IN || "Petugas Aladdin", 
+        cabang: CABANG_TERVERIFIKASI || "Gudang Pusat", 
+        jenisStok: document.getElementById('jenisTransaksi').value, 
+        barcode: document.getElementById('barcodeBumbu').value, 
+        jumlah: parseInt(document.getElementById('jumlahBumbu').value) || 0, 
+        fotoBase64: DATA_BASE64_FOTO || "", 
+        koordinat: KOORDINAT_TEREKAM || "0,0" 
+      }; 
       
-      fetch(WEB_APP_URL, { [cite: 159]
-        method: "POST", [cite: 159]
-        mode: "no-cors", [cite: 159]
-        headers: { "Content-Type": "text/plain; charset=utf-8" }, [cite: 159]
-        body: JSON.stringify(payload) [cite: 159]
-      }) [cite: 159]
-      .then(function() { suksesTransaksiAplikasi(); }) [cite: 159]
-      .catch(function() { [cite: 159]
-        const scriptBackup = document.createElement('script'); [cite: 159]
-        const dataEnc = encodeURIComponent(JSON.stringify(payload)); [cite: 159]
-        scriptBackup.src = `${WEB_APP_URL}?action=kirimManual&data=${dataEnc}&callback=responKirimManual`; [cite: 159]
-        document.body.appendChild(scriptBackup); [cite: 160]
-      }); [cite: 161]
-    } [cite: 161]
+      fetch(WEB_APP_URL, { 
+        method: "POST", 
+        mode: "no-cors", 
+        headers: { "Content-Type": "text/plain; charset=utf-8" }, 
+        body: JSON.stringify(payload) 
+      }) 
+      .then(function() { suksesTransaksiAplikasi(); }) 
+      .catch(function() { 
+        const scriptBackup = document.createElement('script'); 
+        const dataEnc = encodeURIComponent(JSON.stringify(payload)); 
+        scriptBackup.src = `${WEB_APP_URL}?action=kirimManual&data=${dataEnc}&callback=responKirimManual`; 
+        document.body.appendChild(scriptBackup); 
+      }); 
+    } 
 
-    function suksesTransaksiAplikasi() { [cite: 161]
-      const btnSubmit = document.getElementById('btnSubmitLaporan'); [cite: 161]
-      if (btnSubmit) { btnSubmit.disabled = false; } [cite: 162]
-      Swal.close(); [cite: 162]
-      Swal.fire({ title: 'Berhasil!', text: 'Transaksi bumbu berhasil dicatat di Google Sheets.', icon: 'success' }).then(() => { [cite: 163]
-        document.getElementById('btnStokMasukMenu').classList.remove('active-btn'); [cite: 163]
-        document.getElementById('btnStokKeluarMenu').classList.remove('active-btn'); [cite: 163]
-        document.getElementById('btnStokAwalMenu').classList.remove('active-btn'); [cite: 163]
-        document.getElementById('btnStokFisikMenu').classList.remove('active-btn'); [cite: 163]
-        document.getElementById('formTransaksi').reset(); [cite: 163]
-        document.getElementById('areaFormTransaksi').classList.add('d-none'); [cite: 163]
-        document.getElementById('previewBarangBox').style.display = 'none'; [cite: 163]
-        const txtFoto = document.getElementById('textStatusFoto'); [cite: 163]
-        txtFoto.innerText = "TAP TO CAPTURE PHOTO"; [cite: 163]
-        txtFoto.className = "small fw-bold text-uppercase text-danger"; [cite: 164]
-        DATA_BASE64_FOTO = ""; [cite: 164]
-        matikanKameraLive(); [cite: 164]
-      }); [cite: 164]
-    } [cite: 165]
+    function suksesTransaksiAplikasi() { 
+      const btnSubmit = document.getElementById('btnSubmitLaporan'); 
+      if (btnSubmit) { btnSubmit.disabled = false; } 
+      Swal.close(); 
+      Swal.fire({ title: 'Berhasil!', text: 'Transaksi bumbu berhasil dicatat di Google Sheets.', icon: 'success' }).then(() => { 
+        document.getElementById('btnStokMasukMenu').classList.remove('active-btn'); 
+        document.getElementById('btnStokKeluarMenu').classList.remove('active-btn'); 
+        document.getElementById('btnStokAwalMenu').classList.remove('active-btn'); 
+        document.getElementById('btnStokFisikMenu').classList.remove('active-btn'); 
+        document.getElementById('formTransaksi').reset(); 
+        document.getElementById('areaFormTransaksi').classList.add('d-none'); 
+        document.getElementById('previewBarangBox').style.display = 'none'; 
+        const txtFoto = document.getElementById('textStatusFoto'); 
+        txtFoto.innerText = "TAP TO CAPTURE PHOTO"; 
+        txtFoto.className = "small fw-bold text-uppercase text-danger"; 
+        DATA_BASE64_FOTO = ""; 
+        matikanKameraLive(); 
+      }); 
+    } 
   </script>
 </body>
 </html>
