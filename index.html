@@ -358,7 +358,7 @@
       }
     }
 
-    // --- ENGINE DASHBOARD KHUSUS BOSS ---
+   // --- ENGINE DASHBOARD KHUSUS BOSS ---
     function filterLaporanBoss(cabang) {
       FILTER_CABANG_AKTIF = cabang;
       
@@ -386,9 +386,16 @@
         const classSelisih = (item.selisih < 0) ? "text-selisih-minus" : "text-selisih-aman";
         const teksSelisih = (item.selisih > 0) ? `+${item.selisih}` : item.selisih;
 
-        const linkFoto = item.foto ? item.foto : "https://placehold.co/100x100/1f2937/dfb15b?text=No+Image";
+        let linkFoto = item.foto ? item.foto : "https://placehold.co/100x100/1f2937/dfb15b?text=No+Image";
 
-        // DI SINI PERUBAHANNYA: Menambahkan style cursor & onclick pada tag <img>
+        // FIX JALUR GAMBAR: Mengubah otomatis domain ImgBB Indonesia yang bermasalah (.co.com -> .co)
+        if (linkFoto.includes("i.ibb.co.com")) {
+          linkFoto = linkFoto.replace("i.ibb.co.com", "i.ibb.co");
+        }
+
+        // AMAN DARI ERROR SYNTAL TANDA PETIK: Nama bumbu dibersihkan dengan .replace(/'/g, "\\'")
+        const namaBumbuAman = item.nama ? item.nama.replace(/'/g, "\\'") : "Bumbu Aladdin";
+
         const barisHtml = `
           <tr>
             <td class="text-center">
@@ -397,7 +404,7 @@
                    alt="Bumbu" 
                    onerror="this.src='https://placehold.co/100x100/1f2937/dfb15b?text=Bumbu'" 
                    style="cursor: pointer; border: 1px solid #374151;" 
-                   onclick="bukaDetailFotoBoss('${item.nama}', '${linkFoto}', '${item.barcode}')">
+                   onclick="bukaDetailFotoBoss('${namaBumbuAman}', '${linkFoto}', '${item.barcode}')">
             </td>
             <td>
               <div class="fw-bold text-white">${item.nama}</div>
@@ -419,7 +426,10 @@
     // --- POPUP DETAIL FOTO & RIWAYAT LOG TRANSAKSI UNTUK BOSS ---
     function bukaDetailFotoBoss(namaBumbu, fotoLink, kodeBarcode) {
       // 1. Filter log transaksi khusus untuk bumbu ini berdasarkan Barcode
-      let historiLog = DATA_LOG_GLOBAL.filter(log => String(log.Kode_Barcode || log.kode_barcode || '').trim() === String(kodeBarcode).trim());
+      let historiLog = [];
+      if (typeof DATA_LOG_GLOBAL !== 'undefined' && Array.isArray(DATA_LOG_GLOBAL)) {
+        historiLog = DATA_LOG_GLOBAL.filter(log => String(log.Kode_Barcode || log.kode_barcode || '').trim() === String(kodeBarcode).trim());
+      }
 
       // Urutkan tanggal dari yang paling baru di atas
       historiLog.sort((a, b) => new Date(b.Timestamp || b.timestamp) - new Date(a.Timestamp || a.timestamp));
@@ -458,7 +468,7 @@
           let warnaAktivitas = "text-white";
           if (jenis === "MASUK") warnaAktivitas = "text-success";
           if (jenis === "KELUAR") warnaAktivitas = "text-danger";
-          if (jenis === "STOK FISIK") warnaAktivitas = "text-info";
+          if (jenis === "STOK FISIK" || jenis === "STOK AWAL") warnaAktivitas = "text-info";
 
           tabelHTML += `
             <tr style="border-bottom: 1px solid #374151;">
