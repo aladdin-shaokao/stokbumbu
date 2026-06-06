@@ -429,10 +429,10 @@
           <table class="table table-sm table-dark table-borderless" style="font-size: 11px; text-align: left; margin-bottom: 0; background-color: #111827;">
         <thead style="background-color: #1f2937; color: #dfb15b; position: sticky; top: 0; z-index: 10;">
   <tr>
-    <th style="padding: 6px 4px; width: 35%;">Waktu</th> 
-    <th style="padding: 6px 4px; width: 35%;">Petugas</th> 
-    <th style="padding: 6px 4px; width: 15%;">Aktivitas</th> 
-    <th style="padding: 6px 4px; text-align: center; width: 15%; white-space: nowrap;">Jml</th> 
+    <th style="padding: 6px 2px; width: 30%; font-size: 10px;">Waktu</th> 
+    <th style="padding: 6px 2px; width: 30%; font-size: 10px;">Petugas</th> 
+    <th style="padding: 6px 2px; width: 25%; font-size: 10px; white-space: nowrap;">Aktv</th> 
+    <th style="padding: 6px 2px; width: 15%; font-size: 10px; text-align: center; white-space: nowrap;">Jml</th> 
   </tr>
 </thead>
             <tbody>
@@ -460,13 +460,13 @@
           if (jenis === "STOK FISIK" || jenis === "STOK AWAL") warnaAktivitas = "text-info"; 
 
           tabelHTML += `
-            <tr style="border-bottom: 1px solid #374151;">
-              <td style="padding: 6px 8px; color: #9ca3af;">${tanggal}</td> 
-              <td style="padding: 6px 8px; color: #f3f4f6;">${petugas}</td> 
-              <td style="padding: 6px 8px;" class="${warnaAktivitas}"><strong>${jenis}</strong></td> 
-              <td style="padding: 6px 8px; text-align: center; color: #dfb15b; font-weight: bold;">${jumlah}</td> 
-            </tr>
-          `; 
+  <tr style="border-bottom: 1px solid #374151;">
+    <td style="padding: 6px 2px; font-size: 10px; color: #9ca3af; white-space: nowrap;">${tanggal}</td> 
+    <td style="padding: 6px 2px; font-size: 10px; color: #f3f4f6;">${petugas}</td> 
+    <td style="padding: 6px 2px; font-size: 10px; white-space: nowrap;" class="${warnaAktivitas}"><strong>${jenis}</strong></td> 
+    <td style="padding: 6px 2px; font-size: 10px; text-align: center; color: #dfb15b; font-weight: bold; white-space: nowrap;">${jumlah}</td> 
+  </tr>
+`;
         }); 
       } else { 
         tabelHTML += `<tr><td colspan="4" class="text-center text-muted" style="padding: 12px;">Tidak ada riwayat log untuk bumbu ini</td></tr>`; 
