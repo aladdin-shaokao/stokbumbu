@@ -576,11 +576,15 @@ function responLoginPusat(res) {
       } 
     } 
 
-    function kunciStatusSuksesGPS(pesan) { 
+   function kunciStatusSuksesGPS(pesan) { 
       const box = document.getElementById('gpsStatusBox'); 
       box.className = "p-3 rounded text-center fw-bold small bg-success text-white"; 
       box.innerHTML = `<i class="fas fa-check-circle me-2"></i> ${pesan}`; 
-      document.getElementById('menuSistem').style.display = 'block'; 
+      
+      // PERBAIKAN: Hanya tampilkan menu sistem jika role-nya Stok/Admin
+      if (ROLE_USER_AKTIF === 'Stok' || ROLE_USER_AKTIF === 'Admin') {
+        document.getElementById('menuSistem').style.display = 'block';
+      }
     } 
 
     function kunciStatusGagalGPS() { 
@@ -590,15 +594,15 @@ function responLoginPusat(res) {
         <span><i class="fas fa-exclamation-triangle me-2"></i> GPS Lemah (Gagal Kunci Lokasi)</span> 
         <button type="button" onclick="bypassGPSSerpong()" class="btn btn-sm btn-dark fw-bold px-2 py-1">Set Serpong</button> 
       `; 
-      document.getElementById('menuSistem').style.display = 'block'; 
+      // PERBAIKAN: Sembunyikan menu sistem jika gagal (kecuali Anda ingin dia tetap muncul)
+      document.getElementById('menuSistem').style.display = 'none';
     } 
 
     function bypassGPSSerpong() { 
       KOORDINAT_TEREKAM = "-6.2475,106.6255"; 
       CABANG_TERVERIFIKASI = "SERPONG"; 
       kunciStatusSuksesGPS("Cabang Dikunci Manual: Serpong"); 
-    } 
-
+    }
     function toggleLiveScanner() { 
       const areaVideo = document.getElementById('kotakLiveScanner'); 
       const btn = document.getElementById('btnTriggerScanner'); 
