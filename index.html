@@ -380,8 +380,19 @@ function responLoginPusat(res) {
         document.getElementById('areaProduksi').style.display = 'block';
     }
 
-    // ----------------------------
+    // --- KODE UNTUK FORM PRODUKSI ---
+function bukaFormProduksi() {
+    document.getElementById('formInputProduksi').classList.remove('d-none');
+}
 
+function tutupFormProduksi() {
+    document.getElementById('formInputProduksi').classList.add('d-none');
+}
+
+function kirimDataProduksi() {
+    // ... isi fungsi kirimDataProduksi yang tadi ...
+}
+// --------------------------------
         if(res.role === "boss") {
           MASTER_DATA_LAPORAN_BOSS = res.laporanStok || [];
           DATA_LOG_GLOBAL = res.riwayatLog || res.historiLog || [];
