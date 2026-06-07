@@ -329,28 +329,34 @@
       muatPilihanAkunDatalist();
     }
 
-    function responLoginPusat(res) {
-      Swal.close();
-      if(res.status === "success") {
-        console.log("Role yang diterima:", res.role);
-         // --- TAMBAHAN LOGIKA ROLE ---
+function responLoginPusat(res) {
+  Swal.close();
+  if(res.status === "success") {
+    
+    // Sembunyikan Halaman Login
     document.getElementById('halamanLogin').style.display = 'none';
     document.getElementById('halamanDashboard').style.display = 'block';
 
-    // 1. Sembunyikan semua menu secara paksa dulu
+    // AMBIL DATA PETUGAS & ROLE DARI OBJEK 'data'
+    NAMA_PETUGAS_LOGGED_IN = res.data.Nama_Lengkap;
+    let role = res.data.Role; // <--- INI CARA MENGAMBIL ROLE DARI CODE.GS ANDA
+    
+    document.getElementById('namaPetugasAktif').innerText = NAMA_PETUGAS_LOGGED_IN;
+    DATABASE_BARANG_LOCAL = res.databaseBarang || {};
+
+    // 1. Sembunyikan semua menu dulu
     document.getElementById('menuSistem').style.display = 'none';
     document.getElementById('areaProduksi').style.display = 'none';
 
-    // 2. Logika Pemisahan Role
-    // (Pastikan backend mengirim res.role atau res.data.Role)
-    let role = res.role; 
-
-    if(role === "Stok" || role === "Admin") {
+    // 2. Tampilkan menu berdasarkan Role
+    // (Gunakan .trim() untuk jaga-jaga jika ada spasi di kolom Role)
+    if (role && role.trim() === "Stok" || role && role.trim() === "Admin") {
         document.getElementById('menuSistem').style.display = 'block';
     }
-    if(role === "Produksi" || role === "Admin") {
+    if (role && role.trim() === "Produksi" || role && role.trim() === "Admin") {
         document.getElementById('areaProduksi').style.display = 'block';
     }
+
     // ----------------------------
 
         if(res.role === "boss") {
