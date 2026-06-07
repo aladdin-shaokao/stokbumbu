@@ -125,6 +125,18 @@
           </div>
         </div>
       </div>
+      <div id="areaProduksi" style="display: none;" class="mt-4 text-center">
+  <div class="row g-2">
+    <div class="col-12">
+      <button class="btn btn-warning w-100 py-3 fw-bold" onclick="tampilkanAntrian()">
+        <i class="fas fa-industry d-block mb-1 fa-lg"></i> ANTRIAN PRODUKSI
+      </button>
+    </div>
+  </div>
+  <div id="containerAntrian" class="mt-3">
+    <div id="listAntrian" class="text-white"></div>
+  </div>
+</div>
 
       <div id="areaFormTransaksi" class="card p-4 mt-4 d-none" style="background-color: #1f2937; border: 1px solid #374151; border-radius: 12px;">
         <h5 id="judulForm" class="fw-bold text-uppercase text-center mb-4">FORM TRANSAKSI</h5>
@@ -320,7 +332,26 @@
     function responLoginPusat(res) {
       Swal.close();
       if(res.status === "success") {
-        
+         // --- TAMBAHAN LOGIKA ROLE ---
+    document.getElementById('halamanLogin').style.display = 'none';
+    document.getElementById('halamanDashboard').style.display = 'block';
+
+    // 1. Sembunyikan semua menu secara paksa dulu
+    document.getElementById('menuSistem').style.display = 'none';
+    document.getElementById('areaProduksi').style.display = 'none';
+
+    // 2. Logika Pemisahan Role
+    // (Pastikan backend mengirim res.role atau res.data.Role)
+    let role = res.role; 
+
+    if(role === "Stok" || role === "Admin") {
+        document.getElementById('menuSistem').style.display = 'block';
+    }
+    if(role === "Produksi" || role === "Admin") {
+        document.getElementById('areaProduksi').style.display = 'block';
+    }
+    // ----------------------------
+
         if(res.role === "boss") {
           MASTER_DATA_LAPORAN_BOSS = res.laporanStok || [];
           DATA_LOG_GLOBAL = res.riwayatLog || res.historiLog || [];
