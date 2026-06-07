@@ -125,19 +125,42 @@
           </div>
         </div>
       </div>
-      <div id="areaProduksi" style="display: none;" class="mt-4 text-center">
+    <div id="areaProduksi" style="display: none;" class="mt-4 text-center">
   <div class="row g-2">
-    <div class="col-12">
+    <div class="col-6">
       <button class="btn btn-warning w-100 py-3 fw-bold" onclick="tampilkanAntrian()">
-        <i class="fas fa-industry d-block mb-1 fa-lg"></i> ANTRIAN PRODUKSI
+        <i class="fas fa-list d-block mb-1"></i> LIHAT ANTRIAN
+      </button>
+    </div>
+    <div class="col-6">
+      <button class="btn btn-success w-100 py-3 fw-bold" onclick="bukaFormProduksi()">
+        <i class="fas fa-plus d-block mb-1"></i> INPUT PRODUKSI
       </button>
     </div>
   </div>
+
   <div id="containerAntrian" class="mt-3">
     <div id="listAntrian" class="text-white"></div>
   </div>
-</div>
 
+  <div id="formInputProduksi" class="d-none mt-4 p-3 bg-dark border border-warning rounded text-start">
+    <h5 class="text-warning mb-3 text-center">INPUT PRODUKSI</h5>
+    <div class="mb-2">
+      <label class="small">Nama Bahan:</label>
+      <input type="text" id="inputNamaBahan" class="form-control bg-secondary text-white border-0">
+    </div>
+    <div class="mb-2">
+      <label class="small">Timbangan (kg):</label>
+      <input type="number" id="inputTimbangan" class="form-control bg-secondary text-white border-0">
+    </div>
+    <div class="mb-3">
+      <label class="small">Link Foto:</label>
+      <input type="text" id="inputFotoLink" class="form-control bg-secondary text-white border-0">
+    </div>
+    <button class="btn btn-warning w-100 fw-bold" onclick="kirimDataProduksi()">SIMPAN PRODUKSI</button>
+    <button class="btn btn-outline-light w-100 mt-2 btn-sm" onclick="tutupFormProduksi()">BATAL</button>
+  </div>
+</div>
       <div id="areaFormTransaksi" class="card p-4 mt-4 d-none" style="background-color: #1f2937; border: 1px solid #374151; border-radius: 12px;">
         <h5 id="judulForm" class="fw-bold text-uppercase text-center mb-4">FORM TRANSAKSI</h5>
         <form id="formTransaksi" onsubmit="kirimDataTransaksi(event)">
