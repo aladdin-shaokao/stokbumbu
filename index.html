@@ -332,6 +332,7 @@
     function responLoginPusat(res) {
       Swal.close();
       if(res.status === "success") {
+        console.log("Role yang diterima:", res.role);
          // --- TAMBAHAN LOGIKA ROLE ---
     document.getElementById('halamanLogin').style.display = 'none';
     document.getElementById('halamanDashboard').style.display = 'block';
