@@ -785,6 +785,51 @@ function kirimDataProduksi() {
         matikanKameraLive(); 
       }); 
     } 
+    // ... (kode fungsi lainnya di bagian bawah script) ...
+
+    // FUNGSI UNTUK MENGATUR TAMPILAN FORM
+    function bukaFormProduksi() {
+        // Menampilkan form dengan menghapus class d-none
+        document.getElementById('formInputProduksi').classList.remove('d-none');
+    }
+
+    function tutupFormProduksi() {
+        document.getElementById('formInputProduksi').classList.add('d-none');
+    }
+
+    function kirimDataProduksi() {
+        let nama = document.getElementById('inputNamaBahan').value;
+        let timbang = document.getElementById('inputTimbangan').value;
+        let foto = document.getElementById('inputFotoLink').value;
+        let petugas = NAMA_PETUGAS_LOGGED_IN;
+
+        if(!nama || !timbang) {
+            Swal.fire('Error', 'Nama bahan dan timbangan wajib diisi!', 'error');
+            return;
+        }
+
+        Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+        google.script.run
+            .withSuccessHandler(function(idProduksi) {
+                Swal.fire('Berhasil', 'Data disimpan dengan ID: ' + idProduksi, 'success');
+                tutupFormProduksi();
+            })
+            .withFailureHandler(function(err) {
+                Swal.fire('Gagal', 'Error: ' + err, 'error');
+            })
+            .prosesInputProduksi(nama, timbang, foto, petugas);
+    }
+</script> ```
+
+### 2. Tambahkan CSS di `index.html`
+Agar form bisa muncul/hilang dengan benar, pastikan di bagian `<style>` (di atas) ada kode ini:
+
+```css
+<style>
+  /* Tambahkan ini agar class d-none berfungsi */
+  .d-none { display: none !important; }
+</style>
   </script>
 </body>
 </html>
