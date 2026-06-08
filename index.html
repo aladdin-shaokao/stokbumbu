@@ -863,35 +863,45 @@ function kirimDataProduksi() {
     let fotoBase64 = document.getElementById('inputFotoProduksiBase64').value;
     let petugas = typeof NAMA_PETUGAS_LOGGED_IN !== 'undefined' ? NAMA_PETUGAS_LOGGED_IN : "Petugas Produksi";
 
-    if(!nama || !timbang) {
+    if (!nama || !timbang) {
         Swal.fire('Error', 'Nama bahan dan timbangan (gram) wajib diisi!', 'error');
         return;
     }
 
     Swal.fire({ 
         title: 'Menyimpan...', 
-        text: 'Sedang mengupload data & foto ke Google Drive...',
+        text: 'Sedang mengupload data & foto ke Google Sheets...',
         allowOutsideClick: false, 
         didOpen: () => { Swal.showLoading(); } 
     });
 
-    // MEMBUAT STRUKTUR OBJEK DATA YANG BENAR
+    // Menyesuaikan dengan format JSONP/GET sesuai sistem utama Aladdin Anda
     let payload = {
         namaBahan: nama,
         timbangan: parseFloat(timbang),
-        fotoBase64: fotoBase64, // Dikirim berupa string base64 untuk diconvert jadi file di Drive oleh code.gs
+        fotoBase64: fotoBase64,
         namaPetugas: petugas
     };
 
-    google.script.run
-        .withSuccessHandler(function(idProduksi) {
-            Swal.fire('Berhasil', 'Data berhasil disimpan!\nID: ' + idProduksi, 'success');
-            tutupFormProduksi();
-        })
-        .withFailureHandler(function(err) {
-            Swal.fire('Gagal Menyimpan', 'Error: ' + err.toString(), 'error');
-        })
-        .prosesInputProduksi(payload); // Kirim satu objek utuh
+    // MENGGUNAKAN METODE UTAMA KODE ANDA (JSONP CROSS-DOMAIN)
+    // Pastikan variabel WEB_APP_URL sudah terdefinisi di bagian atas kode Anda
+    setTimeout(() => {
+        const scriptProduction = document.createElement('script'); 
+        const dataEnc = encodeURIComponent(JSON.stringify(payload)); 
+        scriptProduction.src = `${WEB_APP_URL}?action=mulaiProduksi&data=${dataEnc}&callback=responKirimProduksi`; 
+        document.body.appendChild(scriptProduction); 
+    }, 500);
+}
+
+// FUNGSI UNTUK MENANGKAP RESPON DARI GOOGLE SCRIPT (MENGHENTIKAN LOADING)
+function responKirimProduksi(res) {
+    Swal.close();
+    if (res && res.status === "success") {
+        Swal.fire('Berhasil', 'Data disimpan dengan ID: ' + res.idProduksi, 'success');
+        tutupFormProduksi();
+    } else {
+        Swal.fire('Gagal', 'Error: ' + (res ? res.message : 'Tidak ada respon server'), 'error');
+    }
 }
   </script>
 </body>
