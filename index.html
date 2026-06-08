@@ -858,14 +858,11 @@ function kirimDataProduksi() {
     let nama = document.getElementById('inputNamaBahan').value;
     let timbang = document.getElementById('inputTimbangan').value;
     
-    // PERBAIKAN 1: Ambil data foto dari variabel global atau text content (bukan .value jika itu bukan elemen input teks)
     let fotoBase64 = "";
     let elemenFoto = document.getElementById('inputFotoProduksiBase64');
     if (elemenFoto) {
-        // Jika elemennya berupa input hidden atau text area
         fotoBase64 = elemenFoto.value || ""; 
     } else if (typeof fotoProduksiBase64Global !== 'undefined') {
-        // Jika selama ini Anda menyimpannya di variabel global javascript saat jepret kamera
         fotoBase64 = fotoProduksiBase64Global;
     }
 
@@ -891,27 +888,37 @@ function kirimDataProduksi() {
         namaPetugas: petugas
     };
 
-    // Eksekusi pengiriman via JSONP
     const scriptProduction = document.createElement('script'); 
     const dataEnc = encodeURIComponent(JSON.stringify(payload)); 
-    
-    // Berikan ID unik pada script agar mudah dibersihkan
     const idScriptUnik = "src_prod_" + new Date().getTime();
+    
     scriptProduction.id = idScriptUnik;
     scriptProduction.src = `${WEB_APP_URL}?action=mulaiProduksi&data=${dataEnc}&callback=responKirimProduksi`; 
     
-    document.body.appendChild(scriptProduction); 
+    // JARINGAN EMERGENCY TIMEOUT (Jika 10 detik tidak ada respon, matikan loading)
+    const emergencyTimeout = setTimeout(() => {
+        Swal.close();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Koneksi Lambat / Terputus',
+            text: 'Server tidak merespon dengan cepat, silakan cek apakah data sudah masuk di Google Sheet atau coba submit ulang beberapa saat lagi.'
+        });
+        let scriptMacet = document.getElementById(idScriptUnik);
+        if (scriptMacet) { document.body.removeChild(scriptMacet); }
+    }, 12000);
 
-    // PERBAIKAN 2: Langsung hapus tag script bekas dari HTML dalam 2 detik agar tidak menyumbat jaringan browser HP
-    setTimeout(() => {
-        let scriptLama = document.getElementById(idScriptUnik);
-        if (scriptLama) { document.body.removeChild(scriptLama); }
-    }, 2000);
+    // Simpan timeout ID ke dalam window agar bisa dihapus jika sukses
+    window.currentProductionTimeout = emergencyTimeout;
+
+    document.body.appendChild(scriptProduction); 
 }
 
-// FUNGSI PENANGKAP RESPON BALIK DARI GOOGLE APPS SCRIPT
 function responKirimProduksi(res) {
-    // Pastikan loading langsung ditutup begitu server merespon
+    // Bersihkan batas waktu darurat karena server merespon dengan selamat!
+    if (window.currentProductionTimeout) {
+        clearTimeout(window.currentProductionTimeout);
+    }
+    
     Swal.close(); 
     
     if (res && res.status === "success") {
@@ -921,20 +928,14 @@ function responKirimProduksi(res) {
             text: 'Data disimpan dengan ID: ' + res.idProduksi,
             confirmButtonColor: '#3085d6'
         }).then(() => {
-            // Reset input form secara bersih setelah sukses
             document.getElementById('inputNamaBahan').value = '';
             document.getElementById('inputTimbangan').value = '';
-            
-            let preview = document.getElementById('previewFotoProduksi'); // sesuaikan dengan ID preview foto Anda jika ada
-            if (preview) preview.style.display = 'none';
-            
-            // Panggil fungsi penutup form bawaan Anda
             if (typeof tutupFormProduksi === "function") {
                 tutupFormProduksi();
             }
         });
     } else {
-        Swal.fire('Gagal', 'Error: ' + (res && res.message ? res.message : 'Tidak ada respon dari server script.'), 'error');
+        Swal.fire('Gagal', 'Error: ' + (res && res.message ? res.message : 'Terjadi kendala internal server script.'), 'error');
     }
 }
 // =============================================================================
