@@ -855,9 +855,13 @@ function ambilFotoProduksi() {
 }
 
 function kirimDataProduksi() {
-    let nama = document.getElementById('inputNamaBahan').value;
+    let nama = document.getElementById('inputNamaBahan') ? document.getElementById('inputNamaBahan').value : "";
     let timbang = document.getElementById('inputTimbangan').value;
     
+    // Sediakan elemen input tersembunyi (hidden input) di HTML Anda untuk menampung ID produksi yang sedang berjalan (jika ada)
+    let idProd = document.getElementById('inputIDProduksi') ? document.getElementById('inputIDProduksi').value : "";
+    let statusTahapActive = document.getElementById('inputStatusTahap') ? document.getElementById('inputStatusTahap').value : "Before";
+
     let fotoBase64 = "";
     let elemenFoto = document.getElementById('inputFotoProduksiBase64');
     if (elemenFoto) {
@@ -868,53 +872,62 @@ function kirimDataProduksi() {
 
     let petugas = (typeof NAMA_PETUGAS_LOGGED_IN !== 'undefined' && NAMA_PETUGAS_LOGGED_IN) ? NAMA_PETUGAS_LOGGED_IN : "Petugas Produksi";
 
-    if (!nama || !timbang) {
-        Swal.fire('Error', 'Nama bahan dan timbangan (gram) wajib diisi!', 'error');
+    if (statusTahapActive === "Before" && (!nama || !timbang)) {
+        Swal.fire('Error', 'Nama bahan dan timbangan wajib diisi!', 'error');
         return;
     }
 
-    // Tampilkan loading SweetAlert
     Swal.fire({ 
         title: 'Menyimpan...', 
-        text: 'Sedang memproses data & foto ukuran besar ke Google Sheets...',
+        text: 'Sedang memproses data & foto ke Google Sheets...',
         allowOutsideClick: false, 
         didOpen: () => { Swal.showLoading(); } 
     });
 
-    // Paket data JSON untuk dikirim via POST
     let payload = {
         action: "mulaiProduksi",
-        statusTahap: "Before", // Sistem otomatis mendeteksi sebagai tahap awal fisik
+        idProduksi: idProd,
+        statusTahap: statusTahapActive, 
         namaBahan: nama,
         timbangan: parseFloat(timbang),
         fotoBase64: fotoBase64,
         namaPetugas: petugas
     };
 
-    // KUNCI UTAMA: Menggunakan POST Fetch API (Anti-Limit Ukuran Foto)
+    // Menggunakan POST tanpa memicu preflight CORS OPTIONS lewat penulisan Header text/plain
     fetch(WEB_APP_URL, {
         method: "POST",
-        mode: "no-cors", // Mode aman lintas domain agar tidak terblokir browser HP
         headers: { "Content-Type": "text/plain" },
         body: JSON.stringify(payload)
     })
-    .then(() => {
-        // Karena mode 'no-cors', browser langsung sukses melempar data ke server Google
+    .then(response => response.json())
+    .then(res => {
         Swal.close();
-        Swal.fire({
-            icon: 'success',
-            title: 'Berhasil Terkirim',
-            text: 'Data produksi berhasil diproses ke Google Sheets.',
-            confirmButtonColor: '#3085d6'
-        }).then(() => {
-            // Reset input form agar bersih kembali
-            document.getElementById('inputNamaBahan').value = '';
-            document.getElementById('inputTimbangan').value = '';
-            
-            if (typeof tutupFormProduksi === "function") {
-                tutupFormProduksi();
-            }
-        });
+        if (res.status === "success") {
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil Terkirim',
+                text: 'Data ' + statusTahapActive + ' sukses diproses. ID: ' + res.idProduksi,
+                confirmButtonColor: '#3085d6'
+            }).then(() => {
+                // Simpan ID produksi baru ke form jika ini baru tahap 'Before' agar tahap berikutnya otomatis memperbarui baris ini
+                if (document.getElementById('inputIDProduksi')) {
+                    document.getElementById('inputIDProduksi').value = res.idProduksi;
+                }
+                
+                // Reset input manual timbangan
+                document.getElementById('inputTimbangan').value = '';
+                if(document.getElementById('inputNamaBahan') && statusTahapActive === "Before") {
+                    document.getElementById('inputNamaBahan').value = '';
+                }
+                
+                if (typeof tutupFormProduksi === "function") {
+                    tutupFormProduksi();
+                }
+            });
+        } else {
+            Swal.fire('Gagal', 'Server Error: ' + res.message, 'error');
+        }
     })
     .catch(err => {
         Swal.close();
