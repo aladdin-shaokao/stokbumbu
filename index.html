@@ -970,7 +970,6 @@ function kirimDataProduksi() {
 // KODE TERBARU UNTUK MENGGANTIKAN KODE ANTRIAN LAMA (SUDAH AUTO POP-UP)
 // =========================================================================
 
-<script>
 // 1. Fungsi pemicu saat tombol "LIHAT ANTRIAN" diklik petugas
 function tampilkanAntrian() {
     Swal.fire({
@@ -1106,6 +1105,7 @@ function lanjutkanProsesProduksi(idProd, namaBahan, tahapTarget) {
         text: `ID: ${idProd} dialihkan ke tahap [ ${tahapTarget} ]. Silakan isi Timbangan & Foto Fisik.`,
         confirmButtonColor: '#3085d6'
     });
+}
 }
 </script>
 </body>
