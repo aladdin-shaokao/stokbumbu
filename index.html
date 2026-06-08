@@ -970,6 +970,7 @@ function kirimDataProduksi() {
 // KODE TERBARU UNTUK MENGGANTIKAN KODE ANTRIAN LAMA (SUDAH AUTO POP-UP)
 // =========================================================================
 
+<script>
 // 1. Fungsi pemicu saat tombol "LIHAT ANTRIAN" diklik petugas
 function tampilkanAntrian() {
     Swal.fire({
@@ -984,6 +985,7 @@ function tampilkanAntrian() {
     scriptAntrian.id = idScriptUnik;
     scriptAntrian.src = WEB_APP_URL + "?action=ambilAntrian&callback=responAmbilAntrian";
     
+    // Proteksi timeout jika jaringan di HP lambat (10 detik)
     const timeoutAntrian = setTimeout(() => {
         Swal.close();
         Swal.fire('Koneksi Lambat', 'Gagal memuat antrian, silakan coba klik lagi.', 'warning');
@@ -995,96 +997,117 @@ function tampilkanAntrian() {
     document.body.appendChild(scriptAntrian);
 }
 
-// 2. Fungsi penangkap data dari server Google Sheet
+// 2. Fungsi penangkap data dari server Google Sheet (VERSI ANTI-GAGAL: AUTO SWAL TABLE)
 function responAmbilAntrian(res) {
     if (window.currentAntrianTimeout) { clearTimeout(window.currentAntrianTimeout); }
-    Swal.close(); // Matikan loading spinner SweetAlert
-
-    let tempatTabel = document.getElementById('isiTabelAntrian'); 
-    if (!tempatTabel) {
-        Swal.fire('Sistem Error', 'Elemen tabel "isiTabelAntrian" belum terpasang di HTML!', 'error');
-        return;
-    }
-
-    tempatTabel.innerHTML = ""; // Reset isi tabel lama
+    Swal.close(); // Matikan loading spinner
 
     if (res && res.status === "success") {
         if (res.data.length === 0) {
-            tempatTabel.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">Tidak ada antrian produksi berjalan saat ini.</td></tr>`;
-        } else {
-            res.data.forEach(item => {
-                let tahapBerikutnya = "Wastage";
-                if (item.statusTahap === "Before") tahapBerikutnya = "Wastage";
-                else if (item.statusTahap === "Wastage") tahapBerikutnya = "After";
-                else if (item.statusTahap === "After") tahapBerikutnya = "Final";
-
-                let barisHTML = `
-                    <tr>
-                        <td class="text-center"><span class="badge bg-secondary fw-bold">${item.idProduksi}</span></td>
-                        <td><strong>${item.namaBahan}</strong></td>
-                        <td class="text-center"><span class="badge bg-warning text-dark">Selesai ${item.statusTahap}</span></td>
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-primary fw-bold px-3" onclick="lanjutkanProsesProduksi('${item.idProduksi}', '${item.namaBahan}', '${tahapBerikutnya}')">
-                                Lanjut ➔
-                            </button>
-                        </td>
-                    </tr>
-                `;
-                tempatTabel.insertAdjacentHTML('beforeend', barisHTML);
+            Swal.fire({
+                icon: 'info',
+                title: 'Antrian Kosong',
+                text: 'Tidak ada antrian produksi bumbu yang berjalan saat ini.',
+                confirmButtonColor: '#ffc107'
             });
+            return;
         }
 
-        // --- TRIGGER POP-UP: Membuka Modal Secara Otomatis & Paksa ---
-        try {
-            if (typeof bootstrap !== 'undefined') {
-                var elemenModal = document.getElementById('modalAntrian');
-                var modalInstance = bootstrap.Modal.getInstance(elemenModal) || new bootstrap.Modal(elemenModal);
-                modalInstance.show();
-            } else if (typeof $ !== 'undefined') {
-                $('#modalAntrian').modal('show');
+        // Mulai rakit struktur tabel HTML di dalam SweetAlert
+        let tabelHTML = `
+            <div class="table-responsive text-start" style="max-height: 350px; overflow-y: auto;">
+                <table class="table table-striped table-bordered align-middle" style="width:100%; color:#333; font-size:14px;">
+                    <thead class="table-dark text-center">
+                        <tr>
+                            <th style="padding:8px;">ID PROD</th>
+                            <th style="padding:8px;">BAHAN</th>
+                            <th style="padding:8px;">TAHAP</th>
+                            <th style="padding:8px;">AKSI</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        // Looping data antrian dari Google Sheet ke dalam baris tabel
+        res.data.forEach(item => {
+            let tahapBerikutnya = "Wastage";
+            let warnaBadge = "bg-primary";
+            
+            if (item.statusTahap === "Before") {
+                tahapBerikutnya = "Wastage";
+                warnaBadge = "bg-info text-dark";
+            } else if (item.statusTahap === "Wastage") {
+                tahapBerikutnya = "After";
+                warnaBadge = "bg-warning text-dark";
+            } else if (item.statusTahap === "After") {
+                tahapBerikutnya = "Final";
+                warnaBadge = "bg-danger text-white";
             }
-        } catch (errModal) {
-            console.log("Gagal memicu pop-up otomatis: " + errModal.message);
-        }
+
+            tabelHTML += `
+                <tr>
+                    <td class="text-center" style="padding:8px;"><span class="badge bg-secondary fw-bold">${item.idProduksi}</span></td>
+                    <td style="padding:8px;"><strong>${item.namaBahan}</strong></td>
+                    <td class="text-center" style="padding:8px;"><span class="badge ${warnaBadge} small">${item.statusTahap}</span></td>
+                    <td class="text-center" style="padding:8px;">
+                        <button class="btn btn-sm btn-warning fw-bold btn-lanjut-antrian" 
+                                style="font-size:12px; padding:4px 8px;"
+                                onclick="lanjutkanProsesProduksi('${item.idProduksi}', '${item.namaBahan}', '${tahapBerikutnya}')">
+                            Lanjut
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        tabelHTML += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        // MELEDAKKAN POP-UP DAFTAR ANTRIAN MENGGUNAKAN SWEETALERT (100% TEMBUS DI HP)
+        Swal.fire({
+            title: '<i class="fas fa-list-ul text-warning"></i> ANTRIAN AKTIF',
+            html: tabelHTML,
+            showCloseButton: true,
+            showConfirmButton: false, // Menghilangkan tombol OK di bawah, petugas harus klik tombol "Lanjut"
+            width: '95%',
+            customClass: {
+                popup: 'rounded-3 shadow-lg'
+            }
+        });
 
     } else {
         Swal.fire('Gagal', 'Gagal memuat list antrian: ' + (res ? res.message : 'Koneksi terputus'), 'error');
     }
-} // <--- Tanda kurung kurawal ini yang tadi sempat hilang di kode lama Anda
+}
 
-// 3. Fungsi saat tombol "Lanjut" di dalam list antrian diklik petugas
+// 3. Fungsi saat tombol "Lanjut" di dalam list tabel SweetAlert diklik petugas
 function lanjutkanProsesProduksi(idProd, namaBahan, tahapTarget) {
+    // Isi ID produksi ke input hidden/tersembunyi di form utama
     if (document.getElementById('inputIDProduksi')) {
         document.getElementById('inputIDProduksi').value = idProd;
     }
+    // Isi nama bahan otomatis dan kunci agar tidak diubah petugas
     if (document.getElementById('inputNamaBahan')) {
         document.getElementById('inputNamaBahan').value = namaBahan;
         document.getElementById('inputNamaBahan').setAttribute('disabled', 'true'); 
     }
+    // Set status pilihan drop-down/input tahap otomatis bergeser ke target berikutnya
     if (document.getElementById('inputStatusTahap')) {
         document.getElementById('inputStatusTahap').value = tahapTarget;
     }
 
-    // --- OTOMATIS TUTUP POP-UP MODAL ANTRIAN ---
-    try {
-        if (typeof bootstrap !== 'undefined') {
-            var elemenModal = document.getElementById('modalAntrian');
-            var modalInstance = bootstrap.Modal.getInstance(elemenModal);
-            if (modalInstance) modalInstance.hide();
-        } else if (typeof $ !== 'undefined') {
-            $('#modalAntrian').modal('hide');
-        }
-    } catch (e) { console.log("Gagal menutup pop-up: " + e.message); }
-
-    // Beritahu petugas form sudah siap diisi
+    // Beritahu petugas form kelanjutan di background sudah siap diisi
     Swal.fire({
-        icon: 'info',
+        icon: 'success',
         title: 'Form Kelanjutan Siap!',
-        text: `ID: ${idProd} otomatis dialihkan ke tahap [ ${tahapTarget} ]`,
-        timer: 3000,
-        showConfirmButton: true
+        text: `ID: ${idProd} dialihkan ke tahap [ ${tahapTarget} ]. Silakan isi Timbangan & Foto Fisik.`,
+        confirmButtonColor: '#3085d6'
     });
 }
+</script>
 // =============================================================================
 </script>
 </body>
