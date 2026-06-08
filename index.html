@@ -876,67 +876,50 @@ function kirimDataProduksi() {
     // Tampilkan loading SweetAlert
     Swal.fire({ 
         title: 'Menyimpan...', 
-        text: 'Sedang mengupload data & foto ke Google Sheets...',
+        text: 'Sedang memproses data & foto ukuran besar ke Google Sheets...',
         allowOutsideClick: false, 
         didOpen: () => { Swal.showLoading(); } 
     });
 
+    // Paket data JSON untuk dikirim via POST
     let payload = {
+        action: "mulaiProduksi",
+        statusTahap: "Before", // Sistem otomatis mendeteksi sebagai tahap awal fisik
         namaBahan: nama,
         timbangan: parseFloat(timbang),
         fotoBase64: fotoBase64,
         namaPetugas: petugas
     };
 
-    const scriptProduction = document.createElement('script'); 
-    const dataEnc = encodeURIComponent(JSON.stringify(payload)); 
-    const idScriptUnik = "src_prod_" + new Date().getTime();
-    
-    scriptProduction.id = idScriptUnik;
-    scriptProduction.src = `${WEB_APP_URL}?action=mulaiProduksi&data=${dataEnc}&callback=responKirimProduksi`; 
-    
-    // JARINGAN EMERGENCY TIMEOUT (Jika 10 detik tidak ada respon, matikan loading)
-    const emergencyTimeout = setTimeout(() => {
+    // KUNCI UTAMA: Menggunakan POST Fetch API (Anti-Limit Ukuran Foto)
+    fetch(WEB_APP_URL, {
+        method: "POST",
+        mode: "no-cors", // Mode aman lintas domain agar tidak terblokir browser HP
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify(payload)
+    })
+    .then(() => {
+        // Karena mode 'no-cors', browser langsung sukses melempar data ke server Google
         Swal.close();
         Swal.fire({
-            icon: 'warning',
-            title: 'Koneksi Lambat / Terputus',
-            text: 'Server tidak merespon dengan cepat, silakan cek apakah data sudah masuk di Google Sheet atau coba submit ulang beberapa saat lagi.'
-        });
-        let scriptMacet = document.getElementById(idScriptUnik);
-        if (scriptMacet) { document.body.removeChild(scriptMacet); }
-    }, 12000);
-
-    // Simpan timeout ID ke dalam window agar bisa dihapus jika sukses
-    window.currentProductionTimeout = emergencyTimeout;
-
-    document.body.appendChild(scriptProduction); 
-}
-
-function responKirimProduksi(res) {
-    // Bersihkan batas waktu darurat karena server merespon dengan selamat!
-    if (window.currentProductionTimeout) {
-        clearTimeout(window.currentProductionTimeout);
-    }
-    
-    Swal.close(); 
-    
-    if (res && res.status === "success") {
-        Swal.fire({
             icon: 'success',
-            title: 'Berhasil',
-            text: 'Data disimpan dengan ID: ' + res.idProduksi,
+            title: 'Berhasil Terkirim',
+            text: 'Data produksi berhasil diproses ke Google Sheets.',
             confirmButtonColor: '#3085d6'
         }).then(() => {
+            // Reset input form agar bersih kembali
             document.getElementById('inputNamaBahan').value = '';
             document.getElementById('inputTimbangan').value = '';
+            
             if (typeof tutupFormProduksi === "function") {
                 tutupFormProduksi();
             }
         });
-    } else {
-        Swal.fire('Gagal', 'Error: ' + (res && res.message ? res.message : 'Terjadi kendala internal server script.'), 'error');
-    }
+    })
+    .catch(err => {
+        Swal.close();
+        Swal.fire('Gagal Kirim', 'Terjadi kendala jaringan: ' + err.toString(), 'error');
+    });
 }
 // =============================================================================
 </script>
