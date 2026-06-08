@@ -812,7 +812,7 @@ function tutupFormProduksi() {
     document.getElementById('formInputProduksi').classList.add('d-none');
 }
 
-// Fungsi untuk mentrigger kamera bawaan HP (Sama persis dengan fitur Input Stok Anda)
+// Fungsi untuk mentrigger kamera bawaan HP (Sudah diperbaiki dari typo '20d')
 function ambilFotoProduksi() {
     const inputKamera = document.createElement('input');
     inputKamera.type = 'file';
@@ -832,13 +832,12 @@ function ambilFotoProduksi() {
             img.onload = function() {
                 // Kompresi Gambar agar hemat kapasitas Drive dan upload cepat
                 const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('20d');
                 const maxW = 600;
                 const scale = maxW / img.width;
                 canvas.width = maxW;
                 canvas.height = img.height * scale;
                 
-                // Jika di komputer/browser tertentu butuh konteks 2d standar
+                // ISI PERBAIKAN: getContext harus '2d'
                 const context = canvas.getContext('2d');
                 context.drawImage(img, 0, 0, canvas.width, canvas.height);
                 
@@ -858,7 +857,6 @@ function ambilFotoProduksi() {
     };
     inputKamera.click();
 }
-
 function kirimDataProduksi() {
     let nama = document.getElementById('inputNamaBahan').value;
     let timbang = document.getElementById('inputTimbangan').value;
