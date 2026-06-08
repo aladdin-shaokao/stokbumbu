@@ -794,19 +794,17 @@ function kirimDataProduksi() {
         matikanKameraLive(); 
       }); 
     } 
-    // ... (kode fungsi lainnya di bagian bawah script) ...
-
-// --- KODE UNTUK FORM PRODUKSI (SUDAH DIPERBAIKI TOTAL) ---
+// =============================================================================
+// --- KODE UNTUK FORM PRODUKSI (DITARUH DI PALING BAWAH AGAR TIDAK TERTUMPUK) ---
+// =============================================================================
 function bukaFormProduksi() {
     document.getElementById('formInputProduksi').classList.remove('d-none');
 }
 
 function tutupFormProduksi() {
     document.getElementById('formInputProduksi').classList.add('d-none');
-    // Bersihkan isi form setelah ditutup agar tidak double input saat dibuka lagi
-    document.getElementById('formInputProduksi').querySelectorAll('input').forEach(input => {
-        if(input.id !== 'inputFotoProduksiBase64') input.value = '';
-    });
+    document.getElementById('inputNamaBahan').value = '';
+    document.getElementById('inputTimbangan').value = '';
     document.getElementById('inputFotoProduksiBase64').value = '';
     document.getElementById('previewFotoProduksi').src = '';
     document.getElementById('previewFotoProduksi').classList.add('d-none');
@@ -819,7 +817,7 @@ function ambilFotoProduksi() {
     const inputKamera = document.createElement('input');
     inputKamera.type = 'file';
     inputKamera.accept = 'image/*';
-    inputKamera.capture = 'environment'; // Membuka kamera belakang HP secara langsung
+    inputKamera.capture = 'environment';
 
     inputKamera.onchange = function(e) {
         const file = e.target.files[0];
@@ -832,7 +830,6 @@ function ambilFotoProduksi() {
             const img = new Image();
             img.src = event.target.result;
             img.onload = function() {
-                // Kompresi Gambar (Aman menggunakan '2d')
                 const canvas = document.createElement('canvas');
                 const maxW = 600;
                 const scale = maxW / img.width;
@@ -844,13 +841,11 @@ function ambilFotoProduksi() {
                 
                 const base64Str = canvas.toDataURL('image/jpeg', 0.7);
                 
-                // Munculkan preview foto di kotak abu-abu
                 document.getElementById('previewFotoProduksi').src = base64Str;
                 document.getElementById('previewFotoProduksi').classList.remove('d-none');
                 document.getElementById('iconKameraProduksi').classList.add('d-none');
                 document.getElementById('textStatusFotoProduksi').classList.add('d-none');
                 
-                // Simpan teks gambar ke input hidden untuk dikirim
                 document.getElementById('inputFotoProduksiBase64').value = base64Str;
             };
         };
@@ -863,8 +858,6 @@ function kirimDataProduksi() {
     let nama = document.getElementById('inputNamaBahan').value;
     let timbang = document.getElementById('inputTimbangan').value;
     let fotoBase64 = document.getElementById('inputFotoProduksiBase64').value;
-    
-    // Validasi pengambil nama petugas login, jika belum siap diisi default
     let petugas = (typeof NAMA_PETUGAS_LOGGED_IN !== 'undefined' && NAMA_PETUGAS_LOGGED_IN) ? NAMA_PETUGAS_LOGGED_IN : "Petugas Produksi";
 
     if (!nama || !timbang) {
@@ -886,7 +879,6 @@ function kirimDataProduksi() {
         namaPetugas: petugas
     };
 
-    // Jalur JSONP Cross-Domain mengikuti sistem utama web Aladdin Anda
     setTimeout(() => {
         const scriptProduction = document.createElement('script'); 
         const dataEnc = encodeURIComponent(JSON.stringify(payload)); 
@@ -895,8 +887,9 @@ function kirimDataProduksi() {
     }, 500);
 }
 
+// INI FUNGSI KRITIS YANG TADI HILANG / TIDAK TERDEFINISI
 function responKirimProduksi(res) {
-    Swal.close(); // Menghentikan putaran loading
+    Swal.close(); 
     if (res && res.status === "success") {
         Swal.fire('Berhasil', 'Data disimpan dengan ID: ' + res.idProduksi, 'success');
         tutupFormProduksi();
@@ -904,7 +897,7 @@ function responKirimProduksi(res) {
         Swal.fire('Gagal', 'Error: ' + (res ? res.message : 'Tidak ada respon server'), 'error');
     }
 }
-// -----------------------------------------------------------
-  </script>
+// =============================================================================
+</script>
 </body>
 </html>
