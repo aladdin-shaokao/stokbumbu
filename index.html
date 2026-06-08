@@ -796,28 +796,30 @@ function kirimDataProduksi() {
     } 
     // ... (kode fungsi lainnya di bagian bawah script) ...
 
-// --- FUNGSI KONTROL FORM PRODUKSI ---
+// --- KODE UNTUK FORM PRODUKSI (SUDAH DIPERBAIKI TOTAL) ---
 function bukaFormProduksi() {
     document.getElementById('formInputProduksi').classList.remove('d-none');
-    // Reset form jika dibuka kembali
-    document.getElementById('inputNamaBahan').value = "";
-    document.getElementById('inputTimbangan').value = "";
-    document.getElementById('previewFotoProduksi').classList.add('d-none');
-    document.getElementById('iconKameraProduksi').classList.remove('d-none');
-    document.getElementById('textStatusFotoProduksi').classList.remove('d-none');
-    document.getElementById('inputFotoProduksiBase64').value = "";
 }
 
 function tutupFormProduksi() {
     document.getElementById('formInputProduksi').classList.add('d-none');
+    // Bersihkan isi form setelah ditutup agar tidak double input saat dibuka lagi
+    document.getElementById('formInputProduksi').querySelectorAll('input').forEach(input => {
+        if(input.id !== 'inputFotoProduksiBase64') input.value = '';
+    });
+    document.getElementById('inputFotoProduksiBase64').value = '';
+    document.getElementById('previewFotoProduksi').src = '';
+    document.getElementById('previewFotoProduksi').classList.add('d-none');
+    document.getElementById('iconKameraProduksi').classList.remove('d-none');
+    document.getElementById('textStatusFotoProduksi').classList.remove('d-none');
+    document.getElementById('textStatusFotoProduksi').innerText = "TAP TO CAPTURE PHOTO";
 }
 
-// Fungsi untuk mentrigger kamera bawaan HP (Sudah diperbaiki dari typo '20d')
 function ambilFotoProduksi() {
     const inputKamera = document.createElement('input');
     inputKamera.type = 'file';
     inputKamera.accept = 'image/*';
-    inputKamera.capture = 'environment'; // Membuka kamera belakang langsung
+    inputKamera.capture = 'environment'; // Membuka kamera belakang HP secara langsung
 
     inputKamera.onchange = function(e) {
         const file = e.target.files[0];
@@ -830,26 +832,25 @@ function ambilFotoProduksi() {
             const img = new Image();
             img.src = event.target.result;
             img.onload = function() {
-                // Kompresi Gambar agar hemat kapasitas Drive dan upload cepat
+                // Kompresi Gambar (Aman menggunakan '2d')
                 const canvas = document.createElement('canvas');
                 const maxW = 600;
                 const scale = maxW / img.width;
                 canvas.width = maxW;
                 canvas.height = img.height * scale;
                 
-                // ISI PERBAIKAN: getContext harus '2d'
                 const context = canvas.getContext('2d');
                 context.drawImage(img, 0, 0, canvas.width, canvas.height);
                 
                 const base64Str = canvas.toDataURL('image/jpeg', 0.7);
                 
-                // Tampilkan Preview ke layar user
+                // Munculkan preview foto di kotak abu-abu
                 document.getElementById('previewFotoProduksi').src = base64Str;
                 document.getElementById('previewFotoProduksi').classList.remove('d-none');
                 document.getElementById('iconKameraProduksi').classList.add('d-none');
                 document.getElementById('textStatusFotoProduksi').classList.add('d-none');
                 
-                // Simpan teks Base64 ke input hidden
+                // Simpan teks gambar ke input hidden untuk dikirim
                 document.getElementById('inputFotoProduksiBase64').value = base64Str;
             };
         };
@@ -857,11 +858,14 @@ function ambilFotoProduksi() {
     };
     inputKamera.click();
 }
+
 function kirimDataProduksi() {
     let nama = document.getElementById('inputNamaBahan').value;
     let timbang = document.getElementById('inputTimbangan').value;
     let fotoBase64 = document.getElementById('inputFotoProduksiBase64').value;
-    let petugas = typeof NAMA_PETUGAS_LOGGED_IN !== 'undefined' ? NAMA_PETUGAS_LOGGED_IN : "Petugas Produksi";
+    
+    // Validasi pengambil nama petugas login, jika belum siap diisi default
+    let petugas = (typeof NAMA_PETUGAS_LOGGED_IN !== 'undefined' && NAMA_PETUGAS_LOGGED_IN) ? NAMA_PETUGAS_LOGGED_IN : "Petugas Produksi";
 
     if (!nama || !timbang) {
         Swal.fire('Error', 'Nama bahan dan timbangan (gram) wajib diisi!', 'error');
@@ -875,7 +879,6 @@ function kirimDataProduksi() {
         didOpen: () => { Swal.showLoading(); } 
     });
 
-    // Menyesuaikan dengan format JSONP/GET sesuai sistem utama Aladdin Anda
     let payload = {
         namaBahan: nama,
         timbangan: parseFloat(timbang),
@@ -883,8 +886,7 @@ function kirimDataProduksi() {
         namaPetugas: petugas
     };
 
-    // MENGGUNAKAN METODE UTAMA KODE ANDA (JSONP CROSS-DOMAIN)
-    // Pastikan variabel WEB_APP_URL sudah terdefinisi di bagian atas kode Anda
+    // Jalur JSONP Cross-Domain mengikuti sistem utama web Aladdin Anda
     setTimeout(() => {
         const scriptProduction = document.createElement('script'); 
         const dataEnc = encodeURIComponent(JSON.stringify(payload)); 
@@ -893,9 +895,8 @@ function kirimDataProduksi() {
     }, 500);
 }
 
-// FUNGSI UNTUK MENANGKAP RESPON DARI GOOGLE SCRIPT (MENGHENTIKAN LOADING)
 function responKirimProduksi(res) {
-    Swal.close();
+    Swal.close(); // Menghentikan putaran loading
     if (res && res.status === "success") {
         Swal.fire('Berhasil', 'Data disimpan dengan ID: ' + res.idProduksi, 'success');
         tutupFormProduksi();
@@ -903,6 +904,7 @@ function responKirimProduksi(res) {
         Swal.fire('Gagal', 'Error: ' + (res ? res.message : 'Tidak ada respon server'), 'error');
     }
 }
+// -----------------------------------------------------------
   </script>
 </body>
 </html>
