@@ -143,20 +143,29 @@
     <div id="listAntrian" class="text-white"></div>
   </div>
 
-  <div id="formInputProduksi" class="d-none mt-4 p-3 bg-dark border border-warning rounded text-start">
+<div id="formInputProduksi" class="d-none mt-4 p-3 bg-dark border border-warning rounded text-start">
     <h5 class="text-warning mb-3 text-center">INPUT PRODUKSI</h5>
+    
     <div class="mb-2">
       <label class="small">Nama Bahan:</label>
       <input type="text" id="inputNamaBahan" class="form-control bg-secondary text-white border-0">
     </div>
+    
     <div class="mb-2">
-      <label class="small">Timbangan (kg):</label>
-      <input type="number" id="inputTimbangan" class="form-control bg-secondary text-white border-0">
+      <label class="small">Timbangan (gram):</label>
+      <input type="number" id="inputTimbangan" class="form-control bg-secondary text-white border-0" placeholder="Contoh: 500">
     </div>
-    <div class="mb-3">
-      <label class="small">Link Foto:</label>
-      <input type="text" id="inputFotoLink" class="form-control bg-secondary text-white border-0">
+    
+    <div class="mb-3 text-center">
+      <label class="small d-block text-start">Foto Fisik:</label>
+      <div id="boxFotoProduksi" class="border border-secondary rounded p-3 bg-secondary text-white position-relative" style="cursor: pointer; min-height: 120px;" onclick="ambilFotoProduksi()">
+        <i class="fas fa-camera fa-2x mb-1 text-warning" id="iconKameraProduksi"></i>
+        <div id="textStatusFotoProduksi" class="small fw-bold text-uppercase text-danger">TAP TO CAPTURE PHOTO</div>
+        <img id="previewFotoProduksi" src="" class="img-fluid rounded d-none" style="max-height: 200px;">
+        <input type="hidden" id="inputFotoProduksiBase64">
+      </div>
     </div>
+    
     <button class="btn btn-warning w-100 fw-bold" onclick="kirimDataProduksi()">SIMPAN PRODUKSI</button>
     <button class="btn btn-outline-light w-100 mt-2 btn-sm" onclick="tutupFormProduksi()">BATAL</button>
   </div>
@@ -787,40 +796,105 @@ function kirimDataProduksi() {
     } 
     // ... (kode fungsi lainnya di bagian bawah script) ...
 
-    // FUNGSI UNTUK MENGATUR TAMPILAN FORM
-    function bukaFormProduksi() {
-        // Menampilkan form dengan menghapus class d-none
-        document.getElementById('formInputProduksi').classList.remove('d-none');
+// --- FUNGSI KONTROL FORM PRODUKSI ---
+function bukaFormProduksi() {
+    document.getElementById('formInputProduksi').classList.remove('d-none');
+    // Reset form jika dibuka kembali
+    document.getElementById('inputNamaBahan').value = "";
+    document.getElementById('inputTimbangan').value = "";
+    document.getElementById('previewFotoProduksi').classList.add('d-none');
+    document.getElementById('iconKameraProduksi').classList.remove('d-none');
+    document.getElementById('textStatusFotoProduksi').classList.remove('d-none');
+    document.getElementById('inputFotoProduksiBase64').value = "";
+}
+
+function tutupFormProduksi() {
+    document.getElementById('formInputProduksi').classList.add('d-none');
+}
+
+// Fungsi untuk mentrigger kamera bawaan HP (Sama persis dengan fitur Input Stok Anda)
+function ambilFotoProduksi() {
+    const inputKamera = document.createElement('input');
+    inputKamera.type = 'file';
+    inputKamera.accept = 'image/*';
+    inputKamera.capture = 'environment'; // Membuka kamera belakang langsung
+
+    inputKamera.onchange = function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        document.getElementById('textStatusFotoProduksi').innerText = "COMPRESSING...";
+        
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = function() {
+                // Kompresi Gambar agar hemat kapasitas Drive dan upload cepat
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('20d');
+                const maxW = 600;
+                const scale = maxW / img.width;
+                canvas.width = maxW;
+                canvas.height = img.height * scale;
+                
+                // Jika di komputer/browser tertentu butuh konteks 2d standar
+                const context = canvas.getContext('2d');
+                context.drawImage(img, 0, 0, canvas.width, canvas.height);
+                
+                const base64Str = canvas.toDataURL('image/jpeg', 0.7);
+                
+                // Tampilkan Preview ke layar user
+                document.getElementById('previewFotoProduksi').src = base64Str;
+                document.getElementById('previewFotoProduksi').classList.remove('d-none');
+                document.getElementById('iconKameraProduksi').classList.add('d-none');
+                document.getElementById('textStatusFotoProduksi').classList.add('d-none');
+                
+                // Simpan teks Base64 ke input hidden
+                document.getElementById('inputFotoProduksiBase64').value = base64Str;
+            };
+        };
+        reader.readAsDataURL(file);
+    };
+    inputKamera.click();
+}
+
+function kirimDataProduksi() {
+    let nama = document.getElementById('inputNamaBahan').value;
+    let timbang = document.getElementById('inputTimbangan').value;
+    let fotoBase64 = document.getElementById('inputFotoProduksiBase64').value;
+    let petugas = typeof NAMA_PETUGAS_LOGGED_IN !== 'undefined' ? NAMA_PETUGAS_LOGGED_IN : "Petugas Produksi";
+
+    if(!nama || !timbang) {
+        Swal.fire('Error', 'Nama bahan dan timbangan (gram) wajib diisi!', 'error');
+        return;
     }
 
-    function tutupFormProduksi() {
-        document.getElementById('formInputProduksi').classList.add('d-none');
-    }
+    Swal.fire({ 
+        title: 'Menyimpan...', 
+        text: 'Sedang mengupload data & foto ke Google Drive...',
+        allowOutsideClick: false, 
+        didOpen: () => { Swal.showLoading(); } 
+    });
 
-    function kirimDataProduksi() {
-        let nama = document.getElementById('inputNamaBahan').value;
-        let timbang = document.getElementById('inputTimbangan').value;
-        let foto = document.getElementById('inputFotoLink').value;
-        let petugas = NAMA_PETUGAS_LOGGED_IN;
+    // MEMBUAT STRUKTUR OBJEK DATA YANG BENAR
+    let payload = {
+        namaBahan: nama,
+        timbangan: parseFloat(timbang),
+        fotoBase64: fotoBase64, // Dikirim berupa string base64 untuk diconvert jadi file di Drive oleh code.gs
+        namaPetugas: petugas
+    };
 
-        if(!nama || !timbang) {
-            Swal.fire('Error', 'Nama bahan dan timbangan wajib diisi!', 'error');
-            return;
-        }
-
-        Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-
-        google.script.run
-            .withSuccessHandler(function(idProduksi) {
-                Swal.fire('Berhasil', 'Data disimpan dengan ID: ' + idProduksi, 'success');
-                tutupFormProduksi();
-            })
-            .withFailureHandler(function(err) {
-                Swal.fire('Gagal', 'Error: ' + err, 'error');
-            })
-            .prosesInputProduksi(nama, timbang, foto, petugas);
-    }
-
+    google.script.run
+        .withSuccessHandler(function(idProduksi) {
+            Swal.fire('Berhasil', 'Data berhasil disimpan!\nID: ' + idProduksi, 'success');
+            tutupFormProduksi();
+        })
+        .withFailureHandler(function(err) {
+            Swal.fire('Gagal Menyimpan', 'Error: ' + err.toString(), 'error');
+        })
+        .prosesInputProduksi(payload); // Kirim satu objek utuh
+}
   </script>
 </body>
 </html>
