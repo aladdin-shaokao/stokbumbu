@@ -1145,6 +1145,23 @@ window.lanjutkanProsesProduksi = function(idProd, namaBahan, tahapTarget) {
         timer: 3000
     });
 };
+// Taruh kode ini di bagian paling bawah script JavaScript Anda
+document.addEventListener("DOMContentLoaded", function() {
+    // Cari tombol hijau berdasarkan teksnya "INPUT PRODUKSI"
+    let tombols = document.querySelectorAll("button, div, a");
+    tombols.forEach(btn => {
+        if (btn.innerText && btn.innerText.includes("INPUT PRODUKSI")) {
+            btn.addEventListener("click", function() {
+                // Paksa reset label dan placeholder ke default semula
+                let labelTimbangan = document.getElementById('labelTimbangan');
+                let inputTimbangan = document.getElementById('inputTimbangan');
+                
+                if (labelTimbangan) labelTimbangan.innerHTML = 'Timbangan (gram):';
+                if (inputTimbangan) inputTimbangan.placeholder = 'Contoh: 500';
+            });
+        }
+    });
+});
 
 </script>
 </body>
