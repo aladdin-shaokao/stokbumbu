@@ -1162,7 +1162,35 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 });
+// =========================================================================
+// PENGAMAN MUTLAK: MENGUNCI LABEL AGAR TIDAK BERUBAH SAAT DIKLIK/DIFOKUS
+// =========================================================================
+document.addEventListener("DOMContentLoaded", function() {
+    let inputTimbangan = document.getElementById('inputTimbangan');
+    let inputStatusTahap = document.getElementById('inputStatusTahap');
+    let labelTimbangan = document.getElementById('labelTimbangan');
 
+    if (inputTimbangan) {
+        // Fungsi untuk memaksa label sesuai dengan tahapannya
+        let kunciLabelOtomatis = function() {
+            if (inputStatusTahap && labelTimbangan) {
+                if (inputStatusTahap.value === "Final") {
+                    labelTimbangan.innerHTML = 'Jumlah Tusuk:';
+                    inputTimbangan.placeholder = 'Contoh: 150';
+                } else {
+                    labelTimbangan.innerHTML = 'Timbangan (gram):';
+                    inputTimbangan.placeholder = 'Contoh: 500';
+                }
+            }
+        };
+
+        // Pasang pengaman di segala jenis interaksi jari petugas pada kolom input
+        inputTimbangan.addEventListener('focus', kunciLabelOtomatis); // Saat kolom diklik/aktif
+        inputTimbangan.addEventListener('click', kunciLabelOtomatis); // Saat kolom disentuh
+        inputTimbangan.addEventListener('input', kunciLabelOtomatis); // Saat petugas mulai mengetik angka
+    }
+});
+    
 </script>
 </body>
 </html>
