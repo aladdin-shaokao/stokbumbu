@@ -993,7 +993,9 @@ function tampilkanAntrian() {
     document.body.appendChild(scriptAntrian);
 }
 
-// 2. Fungsi penangkap data (VERSI LAYOUT MOBILE ANTI-TERPOTONG)
+// =========================================================================
+// 1. FUNGSI PENANGKAP DATA ANTRIAN (DENGAN PEMANGGILAN GLOBAL WINDOW)
+// =========================================================================
 function responAmbilAntrian(res) {
     if (window.currentAntrianTimeout) { clearTimeout(window.currentAntrianTimeout); }
     Swal.close(); 
@@ -1009,7 +1011,6 @@ function responAmbilAntrian(res) {
             return;
         }
 
-        // KUNCI RESPONSIVE HP: Menggunakan table-responsive dan pembatasan white-space: nowrap
         let tabelHTML = `
             <div class="table-responsive text-start" style="max-height: 380px; overflow-y: auto; -webkit-overflow-scrolling: touch; margin:0; padding:0;">
                 <table class="table table-striped table-bordered align-middle" style="width:100%; color:#222; font-size:13px; margin-bottom:0; table-layout: auto;">
@@ -1029,7 +1030,6 @@ function responAmbilAntrian(res) {
             let tahapBerikutnya = "Wastage";
             let warnaBadge = "bg-primary";
             
-            // Logika berjenjang otomatis menuju tahap Final
             if (infoTahap === "Before") {
                 tahapBerikutnya = "Wastage";
                 warnaBadge = "bg-info text-dark";
@@ -1041,7 +1041,7 @@ function responAmbilAntrian(res) {
                 warnaBadge = "bg-danger text-white";
             }
 
-            // Tambahan style 'white-space: nowrap' di setiap cell agar teks tidak pernah terlipat ke bawah di HP
+            // KUNCI PERBAIKAN: Menggunakan window.lanjutkanProsesProduksi agar terbaca oleh SweetAlert
             tabelHTML += `
                 <tr>
                     <td class="text-center" style="padding: 7px 4px; white-space: nowrap; font-family: monospace; font-weight: bold; font-size:11px;">
@@ -1055,8 +1055,8 @@ function responAmbilAntrian(res) {
                     </td>
                     <td class="text-center" style="padding: 7px 4px; white-space: nowrap;">
                         <button class="btn btn-sm btn-warning fw-bold text-dark" 
-                                style="font-size:11px; padding: 3px 8px; white-space: nowrap; inline-block;"
-                                onclick="lanjutkanProsesProduksi('${item.idProduksi}', '${item.namaBahan}', '${tahapBerikutnya}')">
+                                style="font-size:11px; padding: 3px 8px; white-space: nowrap;"
+                                onclick="window.lanjutkanProsesProduksi('${item.idProduksi}', '${item.namaBahan}', '${tahapBerikutnya}')">
                             Lanjut
                         </button>
                     </td>
@@ -1070,40 +1070,41 @@ function responAmbilAntrian(res) {
             </div>
         `;
 
-        // Memunculkan Pop-up dengan lebar maksimal di HP agar pas di layar
         Swal.fire({
             title: '<i class="fas fa-list-ul text-warning"></i> ANTRIAN PRODUKSI',
             html: tabelHTML,
             showCloseButton: true,
             showConfirmButton: false,
             width: window.innerWidth < 500 ? '96%' : '75%',
-            padding: '10px',
-            customClass: { popup: 'rounded-3 shadow-lg' }
+            padding: '10px'
         });
 
     } else {
-        Swal.fire('Gagal', 'Gagal memuat list antrian: ' + (res ? res.message : 'Koneksi terputus'), 'error');
+        Swal.fire('Gagal', 'Gagal memuat list antrian.', 'error');
     }
 }
 
-// 3. Fungsi Eksekusi Kelanjutan Tahap (VERSI FIX OTOMATIS BUKA FORM & SCROLL)
-function lanjutanProsesProduksi(idProd, namaBahan, tahapTarget) {
-    // 1. Isi data ke elemen input Form Utama (Mendukung variasi penamaan ID uppercase/lowercase)
+// =========================================================================
+// 2. FUNGSI EKSEKUSI UTAMA (DIKUNCI KE OBJECT WINDOW GLOBAL AGAR PASTI JALAN)
+// =========================================================================
+window.lanjutkanProsesProduksi = function(idProd, namaBahan, tahapTarget) {
+    // 1. Langsung paksa tutup pop-up antrian lama secara instan sebagai feedback klik
+    Swal.close();
+    
+    // 2. Cari elemen-elemen input pengisian form di HTML Anda
     let inputID = document.getElementById('inputIDProduksi') || document.getElementById('idProduksi');
     let inputBahan = document.getElementById('inputNamaBahan') || document.getElementById('namaBahan');
     let inputTahap = document.getElementById('inputStatusTahap') || document.getElementById('statusTahap');
 
+    // 3. Masukkan data antrian terpilih ke dalam kolom input
     if (inputID) inputID.value = idProd;
-    
     if (inputBahan) {
         inputBahan.value = namaBahan;
-        // Gunakan readOnly agar data bumbu terkunci tapi TETAP ikut terkirim saat disubmit ke Google Sheet
-        inputBahan.readOnly = true; 
+        inputBahan.readOnly = true; // Kunci biar petugas tidak bisa asal ubah nama bumbunya
     }
-    
     if (inputTahap) inputTahap.value = tahapTarget;
 
-    // 2. KUNCI UTAMA: Paksa buka form input produksi yang tadinya tersembunyi
+    // 4. Paksa buka container form input produksi yang tadinya d-none
     if (typeof bukaFormProduksi === "function") {
         bukaFormProduksi();
     } else {
@@ -1111,21 +1112,23 @@ function lanjutanProsesProduksi(idProd, namaBahan, tahapTarget) {
         if (boxForm) boxForm.classList.remove('d-none');
     }
 
-    // 3. Gulir otomatis layar HP langsung ke arah form agar petugas tinggal isi timbangan & foto
+    // 5. Geser layar HP petugas secara halus langsung menuju ke lokasi form input timbangan
     let targetScroll = document.getElementById('formInputProduksi') || document.getElementById('areaProduksi');
     if (targetScroll) {
-        targetScroll.scrollIntoView({ behavior: 'smooth' });
+        setTimeout(() => {
+            targetScroll.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 150); // Diberi delay 150ms agar animasi penutupan SweetAlert selesai dulu
     }
 
-    // 4. Beri notifikasi instan yang ramah di mata petugas
+    // 6. Munculkan alert penanda sukses perpindahan tahap produksi
     Swal.fire({
         icon: 'success',
         title: 'Form Kelanjutan Aktif',
-        text: `ID ${idProd} dialihkan ke tahap [ ${tahapTarget} ]. Silakan input data timbangan terbaru di bawah!`,
+        text: `Silakan lengkapi data timbangan & foto untuk tahap [ ${tahapTarget} ]`,
         confirmButtonColor: '#28a745',
-        timer: 3500
+        timer: 3000
     });
-}
+};
 
 </script>
 </body>
