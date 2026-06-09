@@ -993,10 +993,10 @@ function tampilkanAntrian() {
     document.body.appendChild(scriptAntrian);
 }
 
-// 2. Fungsi penangkap data dari server Google Sheet (VERSI ANTI-GAGAL: AUTO SWAL TABLE)
+// 2. Fungsi penangkap data (VERSI LAYOUT MOBILE ANTI-TERPOTONG)
 function responAmbilAntrian(res) {
     if (window.currentAntrianTimeout) { clearTimeout(window.currentAntrianTimeout); }
-    Swal.close(); // Matikan loading spinner
+    Swal.close(); 
 
     if (res && res.status === "success") {
         if (res.data.length === 0) {
@@ -1009,45 +1009,53 @@ function responAmbilAntrian(res) {
             return;
         }
 
-        // Mulai rakit struktur tabel HTML di dalam SweetAlert
+        // KUNCI RESPONSIVE HP: Menggunakan table-responsive dan pembatasan white-space: nowrap
         let tabelHTML = `
-            <div class="table-responsive text-start" style="max-height: 350px; overflow-y: auto;">
-                <table class="table table-striped table-bordered align-middle" style="width:100%; color:#333; font-size:14px;">
-                    <thead class="table-dark text-center">
+            <div class="table-responsive text-start" style="max-height: 380px; overflow-y: auto; -webkit-overflow-scrolling: touch; margin:0; padding:0;">
+                <table class="table table-striped table-bordered align-middle" style="width:100%; color:#222; font-size:13px; margin-bottom:0; table-layout: auto;">
+                    <thead class="table-dark text-center" style="font-size:11px;">
                         <tr>
-                            <th style="padding:8px;">ID PROD</th>
-                            <th style="padding:8px;">BAHAN</th>
-                            <th style="padding:8px;">TAHAP</th>
-                            <th style="padding:8px;">AKSI</th>
+                            <th style="padding: 6px 4px; white-space: nowrap;">ID PROD</th>
+                            <th style="padding: 6px 4px; white-space: nowrap;">BAHAN</th>
+                            <th style="padding: 6px 4px; white-space: nowrap;">TAHAP</th>
+                            <th style="padding: 6px 4px; white-space: nowrap;">AKSI</th>
                         </tr>
                     </thead>
                     <tbody>
         `;
 
-        // Looping data antrian dari Google Sheet ke dalam baris tabel
         res.data.forEach(item => {
+            let infoTahap = String(item.statusTahap).trim();
             let tahapBerikutnya = "Wastage";
             let warnaBadge = "bg-primary";
             
-            if (item.statusTahap === "Before") {
+            // Logika berjenjang otomatis menuju tahap Final
+            if (infoTahap === "Before") {
                 tahapBerikutnya = "Wastage";
                 warnaBadge = "bg-info text-dark";
-            } else if (item.statusTahap === "Wastage") {
+            } else if (infoTahap === "Wastage") {
                 tahapBerikutnya = "After";
                 warnaBadge = "bg-warning text-dark";
-            } else if (item.statusTahap === "After") {
+            } else if (infoTahap === "After") {
                 tahapBerikutnya = "Final";
                 warnaBadge = "bg-danger text-white";
             }
 
+            // Tambahan style 'white-space: nowrap' di setiap cell agar teks tidak pernah terlipat ke bawah di HP
             tabelHTML += `
                 <tr>
-                    <td class="text-center" style="padding:8px;"><span class="badge bg-secondary fw-bold">${item.idProduksi}</span></td>
-                    <td style="padding:8px;"><strong>${item.namaBahan}</strong></td>
-                    <td class="text-center" style="padding:8px;"><span class="badge ${warnaBadge} small">${item.statusTahap}</span></td>
-                    <td class="text-center" style="padding:8px;">
-                        <button class="btn btn-sm btn-warning fw-bold btn-lanjut-antrian" 
-                                style="font-size:12px; padding:4px 8px;"
+                    <td class="text-center" style="padding: 7px 4px; white-space: nowrap; font-family: monospace; font-weight: bold; font-size:11px;">
+                        ${item.idProduksi}
+                    </td>
+                    <td style="padding: 7px 4px; white-space: nowrap; font-weight: bold; min-width: 70px;">
+                        ${item.namaBahan}
+                    </td>
+                    <td class="text-center" style="padding: 7px 4px; white-space: nowrap;">
+                        <span class="badge ${warnaBadge}" style="font-size:11px; padding: 4px 6px;">${item.statusTahap}</span>
+                    </td>
+                    <td class="text-center" style="padding: 7px 4px; white-space: nowrap;">
+                        <button class="btn btn-sm btn-warning fw-bold text-dark" 
+                                style="font-size:11px; padding: 3px 8px; white-space: nowrap; inline-block;"
                                 onclick="lanjutkanProsesProduksi('${item.idProduksi}', '${item.namaBahan}', '${tahapBerikutnya}')">
                             Lanjut
                         </button>
@@ -1062,16 +1070,15 @@ function responAmbilAntrian(res) {
             </div>
         `;
 
-        // MELEDAKKAN POP-UP DAFTAR ANTRIAN MENGGUNAKAN SWEETALERT (100% TEMBUS DI HP)
+        // Memunculkan Pop-up dengan lebar maksimal di HP agar pas di layar
         Swal.fire({
-            title: '<i class="fas fa-list-ul text-warning"></i> ANTRIAN AKTIF',
+            title: '<i class="fas fa-list-ul text-warning"></i> ANTRIAN PRODUKSI',
             html: tabelHTML,
             showCloseButton: true,
-            showConfirmButton: false, // Menghilangkan tombol OK di bawah, petugas harus klik tombol "Lanjut"
-            width: '95%',
-            customClass: {
-                popup: 'rounded-3 shadow-lg'
-            }
+            showConfirmButton: false,
+            width: window.innerWidth < 500 ? '96%' : '75%',
+            padding: '10px',
+            customClass: { popup: 'rounded-3 shadow-lg' }
         });
 
     } else {
@@ -1079,31 +1086,47 @@ function responAmbilAntrian(res) {
     }
 }
 
-// 3. Fungsi saat tombol "Lanjut" di dalam list tabel SweetAlert diklik petugas
-function lanjutkanProsesProduksi(idProd, namaBahan, tahapTarget) {
-    // Isi ID produksi ke input hidden/tersembunyi di form utama
-    if (document.getElementById('inputIDProduksi')) {
-        document.getElementById('inputIDProduksi').value = idProd;
+// 3. Fungsi Eksekusi Kelanjutan Tahap (VERSI FIX OTOMATIS BUKA FORM & SCROLL)
+function lanjutanProsesProduksi(idProd, namaBahan, tahapTarget) {
+    // 1. Isi data ke elemen input Form Utama (Mendukung variasi penamaan ID uppercase/lowercase)
+    let inputID = document.getElementById('inputIDProduksi') || document.getElementById('idProduksi');
+    let inputBahan = document.getElementById('inputNamaBahan') || document.getElementById('namaBahan');
+    let inputTahap = document.getElementById('inputStatusTahap') || document.getElementById('statusTahap');
+
+    if (inputID) inputID.value = idProd;
+    
+    if (inputBahan) {
+        inputBahan.value = namaBahan;
+        // Gunakan readOnly agar data bumbu terkunci tapi TETAP ikut terkirim saat disubmit ke Google Sheet
+        inputBahan.readOnly = true; 
     }
-    // Isi nama bahan otomatis dan kunci agar tidak diubah petugas
-    if (document.getElementById('inputNamaBahan')) {
-        document.getElementById('inputNamaBahan').value = namaBahan;
-        document.getElementById('inputNamaBahan').setAttribute('disabled', 'true'); 
-    }
-    // Set status pilihan drop-down/input tahap otomatis bergeser ke target berikutnya
-    if (document.getElementById('inputStatusTahap')) {
-        document.getElementById('inputStatusTahap').value = tahapTarget;
+    
+    if (inputTahap) inputTahap.value = tahapTarget;
+
+    // 2. KUNCI UTAMA: Paksa buka form input produksi yang tadinya tersembunyi
+    if (typeof bukaFormProduksi === "function") {
+        bukaFormProduksi();
+    } else {
+        let boxForm = document.getElementById('formInputProduksi');
+        if (boxForm) boxForm.classList.remove('d-none');
     }
 
-    // Beritahu petugas form kelanjutan di background sudah siap diisi
+    // 3. Gulir otomatis layar HP langsung ke arah form agar petugas tinggal isi timbangan & foto
+    let targetScroll = document.getElementById('formInputProduksi') || document.getElementById('areaProduksi');
+    if (targetScroll) {
+        targetScroll.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // 4. Beri notifikasi instan yang ramah di mata petugas
     Swal.fire({
         icon: 'success',
-        title: 'Form Kelanjutan Siap!',
-        text: `ID: ${idProd} dialihkan ke tahap [ ${tahapTarget} ]. Silakan isi Timbangan & Foto Fisik.`,
-        confirmButtonColor: '#3085d6'
+        title: 'Form Kelanjutan Aktif',
+        text: `ID ${idProd} dialihkan ke tahap [ ${tahapTarget} ]. Silakan input data timbangan terbaru di bawah!`,
+        confirmButtonColor: '#28a745',
+        timer: 3500
     });
 }
-    
+
 </script>
 </body>
 </html>
