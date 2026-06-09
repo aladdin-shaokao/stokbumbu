@@ -394,34 +394,70 @@
     }
 
 function responLoginPusat(res) {
-  Swal.close();
+  Swal.close(); 
+  
   if(res.status === "success") {
     
-    // Sembunyikan Halaman Login
+    // 1. JIKA USER ADALAH BOSS/OWNER -> LANGSUNG JEBOL TANPA GPS
+    if(res.role === "boss" || res.username === "boss") {
+      MASTER_DATA_LAPORAN_BOSS = res.laporanStok || [];
+      DATA_LOG_GLOBAL = res.riwayatLog || res.historiLog || [];
+      
+      document.getElementById('namaBossAktif').innerText = res.namaLengkap || "Owner";
+      document.getElementById('halamanLogin').style.display = 'none';
+      document.getElementById('halamanBoss').style.display = 'block';
+      
+      filterLaporanBoss('ALL'); 
+      return; // 🛑 Berhenti di sini, abaikan kode GPS petugas di bawah
+    }
+
+    // 2. JIKA PETUGAS OPERASIONAL (STOK / PRODUKSI / ADMIN)
+    if (!res.data) {
+      Swal.fire('Sistem Error', 'Data profil petugas tidak ditemukan.', 'error');
+      return;
+    }
+
     document.getElementById('halamanLogin').style.display = 'none';
     document.getElementById('halamanDashboard').style.display = 'block';
 
-    // AMBIL DATA PETUGAS & ROLE DARI OBJEK 'data'
     NAMA_PETUGAS_LOGGED_IN = res.data.Nama_Lengkap;
-    let role = res.data.Role; // <--- INI CARA MENGAMBIL ROLE DARI CODE.GS ANDA
+    let role = res.data.Role; 
     
     document.getElementById('namaPetugasAktif').innerText = NAMA_PETUGAS_LOGGED_IN;
     DATABASE_BARANG_LOCAL = res.databaseBarang || {};
 
-    // 1. Sembunyikan semua menu dulu
+    // Reset Menu Akses
     document.getElementById('menuSistem').style.display = 'none';
     document.getElementById('areaProduksi').style.display = 'none';
 
-    // 2. Tampilkan menu berdasarkan Role
-    // (Gunakan .trim() untuk jaga-jaga jika ada spasi di kolom Role)
-    if (role && role.trim() === "Stok" || role && role.trim() === "Admin") {
+    // Tampilkan Menu Sesuai Tugas
+    if (role && (role.trim() === "Stok" || role.trim() === "Admin")) {
         document.getElementById('menuSistem').style.display = 'block';
     }
-    if (role && role.trim() === "Produksi" || role && role.trim() === "Admin") {
+    if (role && (role.trim() === "Produksi" || role.trim() === "Admin")) {
         document.getElementById('areaProduksi').style.display = 'block';
     }
   
-    // --- KODE UNTUK FORM PRODUKSI ---
+    // Cek Mode Opname Mingguan
+    const wrapperAwal = document.getElementById('wrapperStokAwal');
+    const wrapperFisik = document.getElementById('wrapperStokFisik');
+    if (typeof IS_ADMIN_OPNAME !== 'undefined' && IS_ADMIN_OPNAME) {
+      if(wrapperAwal) wrapperAwal.style.display = 'block';
+      if(wrapperFisik) wrapperFisik.style.display = 'block';
+    } else {
+      if(wrapperAwal) wrapperAwal.style.display = 'none';
+      if(wrapperFisik) wrapperFisik.style.display = 'none';
+    }
+
+    // Jalankan Verifikasi GPS Petugas Lapangan
+    prosesHitungGPSFisik(res.cabangList);
+
+  } else {
+    Swal.fire('Gagal Masuk', res.message, 'error');
+  }
+}
+
+// KODE TOMBOL FORM PRODUKSI (SUDAH DIKELUARKAN SECARA AMAN)
 function bukaFormProduksi() {
     document.getElementById('formInputProduksi').classList.remove('d-none');
 }
@@ -429,45 +465,6 @@ function bukaFormProduksi() {
 function tutupFormProduksi() {
     document.getElementById('formInputProduksi').classList.add('d-none');
 }
-
-function kirimDataProduksi() {
-    // ... isi fungsi kirimDataProduksi yang tadi ...
-}
-// --------------------------------
-        if(res.role === "boss") {
-          MASTER_DATA_LAPORAN_BOSS = res.laporanStok || [];
-          DATA_LOG_GLOBAL = res.riwayatLog || res.historiLog || [];
-          document.getElementById('namaBossAktif').innerText = res.namaLengkap || "Owner";
-          document.getElementById('halamanLogin').style.display = 'none';
-          document.getElementById('halamanBoss').style.display = 'block';
-          
-          filterLaporanBoss('ALL');
-          return;
-        }
-
-        NAMA_PETUGAS_LOGGED_IN = res.data.Nama_Lengkap;
-        DATABASE_BARANG_LOCAL = res.databaseBarang || {};
-
-        document.getElementById('namaPetugasAktif').innerText = NAMA_PETUGAS_LOGGED_IN;
-        document.getElementById('halamanLogin').style.display = 'none';
-        document.getElementById('halamanDashboard').style.display = 'block';
-        
-        const wrapperAwal = document.getElementById('wrapperStokAwal');
-        const wrapperFisik = document.getElementById('wrapperStokFisik');
-        if (IS_ADMIN_OPNAME) {
-          wrapperAwal.style.display = 'block';
-          wrapperFisik.style.display = 'block';
-          Swal.fire({ title: 'Mode Opname Aktif', text: 'Selamat datang, fitur kontrol stok mingguan terbuka.', icon: 'info', timer: 2000, showConfirmButton: false });
-        } else {
-          wrapperAwal.style.display = 'none';
-          wrapperFisik.style.display = 'none';
-        }
-
-        prosesHitungGPSFisik(res.cabangList);
-      } else {
-        Swal.fire('Gagal Masuk', res.message, 'error');
-      }
-    }
 
     function filterLaporanBoss(cabang) {
       FILTER_CABANG_AKTIF = cabang;
