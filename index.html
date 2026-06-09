@@ -146,16 +146,18 @@
 <div id="formInputProduksi" class="d-none mt-4 p-3 bg-dark border border-warning rounded text-start">
     <h5 class="text-warning mb-3 text-center">INPUT PRODUKSI</h5>
     
-    <input type="hidden" id="inputIDProduksi" value="">
-    <input type="hidden" id="inputStatusTahap" value="Before"> <div class="mb-2">
-      <label class="small">Nama Bahan:</label>
-      <input type="text" id="inputNamaBahan" class="form-control bg-secondary text-white border-0">
-    </div>
-    
-    <div class="mb-2">
-      <label class="small">Timbangan (gram):</label>
-      <input type="number" id="inputTimbangan" class="form-control bg-secondary text-white border-0" placeholder="Contoh: 500">
-    </div>
+   <input type="hidden" id="inputIDProduksi" value="">
+<input type="hidden" id="inputStatusTahap" value="Before"> 
+
+<div class="mb-2">
+  <label class="small">Nama Bahan:</label>
+  <input type="text" id="inputNamaBahan" class="form-control bg-secondary text-white border-0">
+</div>
+
+<div class="mb-2">
+  <label class="small" id="labelTimbangan">Timbangan (gram):</label>
+  <input type="number" id="inputTimbangan" class="form-control bg-secondary text-white border-0" placeholder="Contoh: 500">
+</div>
     
     <div class="mb-3 text-center">
       <label class="small d-block text-start">Foto Fisik:</label>
@@ -1088,23 +1090,37 @@ function responAmbilAntrian(res) {
 // 2. FUNGSI EKSEKUSI UTAMA (DIKUNCI KE OBJECT WINDOW GLOBAL AGAR PASTI JALAN)
 // =========================================================================
 window.lanjutkanProsesProduksi = function(idProd, namaBahan, tahapTarget) {
-    // 1. Langsung paksa tutup pop-up antrian lama secara instan sebagai feedback klik
+    // 1. Tutup pop-up antrian
     Swal.close();
     
-    // 2. Cari elemen-elemen input pengisian form di HTML Anda
+    // 2. Ambil elemen-elemen input form
     let inputID = document.getElementById('inputIDProduksi') || document.getElementById('idProduksi');
     let inputBahan = document.getElementById('inputNamaBahan') || document.getElementById('namaBahan');
     let inputTahap = document.getElementById('inputStatusTahap') || document.getElementById('statusTahap');
+    
+    // Ambil elemen input timbangan dan labelnya
+    let inputTimbangan = document.getElementById('inputTimbangan') || document.getElementById('timbangan') || document.querySelector('input[type="number"]');
+    let labelTimbangan = document.getElementById('labelTimbangan') || (inputTimbangan ? inputTimbangan.previousElementSibling : null);
 
-    // 3. Masukkan data antrian terpilih ke dalam kolom input
+    // 3. Masukkan data antrian terpilih ke form
     if (inputID) inputID.value = idProd;
     if (inputBahan) {
         inputBahan.value = namaBahan;
-        inputBahan.readOnly = true; // Kunci biar petugas tidak bisa asal ubah nama bumbunya
+        inputBahan.readOnly = true; 
     }
     if (inputTahap) inputTahap.value = tahapTarget;
 
-    // 4. Paksa buka container form input produksi yang tadinya d-none
+    // 4. KUNCI UTAMA: Ubah teks label & placeholder jika masuk tahap FINAL
+    if (tahapTarget === "Final") {
+        if (labelTimbangan) labelTimbangan.innerHTML = 'Jumlah Tusuk:';
+        if (inputTimbangan) inputTimbangan.placeholder = 'Contoh: 150';
+    } else {
+        // Kembalikan ke default jika tahapnya Wastage atau After
+        if (labelTimbangan) labelTimbangan.innerHTML = 'Timbangan (gram):';
+        if (inputTimbangan) inputTimbangan.placeholder = 'Contoh: 500';
+    }
+
+    // 5. Buka container form input produksi
     if (typeof bukaFormProduksi === "function") {
         bukaFormProduksi();
     } else {
@@ -1112,19 +1128,19 @@ window.lanjutkanProsesProduksi = function(idProd, namaBahan, tahapTarget) {
         if (boxForm) boxForm.classList.remove('d-none');
     }
 
-    // 5. Geser layar HP petugas secara halus langsung menuju ke lokasi form input timbangan
+    // 6. Geser layar HP petugas ke arah form
     let targetScroll = document.getElementById('formInputProduksi') || document.getElementById('areaProduksi');
     if (targetScroll) {
         setTimeout(() => {
             targetScroll.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 150); // Diberi delay 150ms agar animasi penutupan SweetAlert selesai dulu
+        }, 150);
     }
 
-    // 6. Munculkan alert penanda sukses perpindahan tahap produksi
+    // 7. Notifikasi sukses perpindahan tahap
     Swal.fire({
         icon: 'success',
         title: 'Form Kelanjutan Aktif',
-        text: `Silakan lengkapi data timbangan & foto untuk tahap [ ${tahapTarget} ]`,
+        text: `Silakan masukkan ${tahapTarget === "Final" ? "Jumlah Tusuk" : "Timbangan"} untuk tahap [ ${tahapTarget} ]`,
         confirmButtonColor: '#28a745',
         timer: 3000
     });
