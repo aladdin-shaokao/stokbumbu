@@ -902,6 +902,11 @@ function kirimDataProduksi() {
     }
 
     let petugas = (typeof NAMA_PETUGAS_LOGGED_IN !== 'undefined' && NAMA_PETUGAS_LOGGED_IN) ? NAMA_PETUGAS_LOGGED_IN : "Petugas Produksi";
+    
+    // =========================================================================
+    // 1. TAMBAHAN LOGIKA DETEKSI CABANG (Berdasarkan Akun Login)
+    // =========================================================================
+    let cabang = (typeof CABANG_LOGGED_IN !== 'undefined' && CABANG_LOGGED_IN) ? CABANG_LOGGED_IN : "Pusat";
 
     if (statusTahapActive === "Before" && (!nama || !timbang)) {
         Swal.fire('Error', 'Nama bahan dan timbangan wajib diisi!', 'error');
@@ -915,6 +920,9 @@ function kirimDataProduksi() {
         didOpen: () => { Swal.showLoading(); } 
     });
 
+    // =========================================================================
+    // 2. MENYISIPKAN DATA CABANG KE DALAM PAYLOAD YANG DIKIRIM
+    // =========================================================================
     let payload = {
         action: "mulaiProduksi",
         idProduksi: idProd,
@@ -922,7 +930,8 @@ function kirimDataProduksi() {
         namaBahan: nama,
         timbangan: parseFloat(timbang),
         fotoBase64: fotoBase64,
-        namaPetugas: petugas
+        namaPetugas: petugas,
+        namaCabang: cabang // <-- Cabang otomatis ikut terkirim ke Google Sheets
     };
 
     // Menggunakan POST tanpa memicu preflight CORS OPTIONS lewat penulisan Header text/plain
