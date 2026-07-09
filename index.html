@@ -1158,12 +1158,21 @@ window.lanjutkanProsesProduksi = function(idProd, namaBahan, tahapTarget) {
     let labelTimbangan = document.getElementById('labelTimbangan') || (inputTimbangan ? inputTimbangan.previousElementSibling : null);
 
     // 3. Masukkan data antrian terpilih ke form
-    if (inputID) inputID.value = idProd;
+   if (inputID) inputID.value = idProd;
     if (inputBahan) {
         inputBahan.value = namaBahan;
         inputBahan.readOnly = true; 
     }
     if (inputTahap) inputTahap.value = tahapTarget;
+
+    // =========================================================================
+    // TAMBAHAN PENTING: Buka paksa container form agar muncul di layar HP
+    // =========================================================================
+    let containerForm = document.getElementById('formInputProduksi');
+    if (containerForm) {
+        containerForm.classList.remove('d-none'); // Menghilangkan d-none agar form terlihat
+        containerForm.scrollIntoView({ behavior: 'smooth' }); // Scroll otomatis ke area form input
+    }
 
     // 4. KUNCI UTAMA: Ubah teks label & placeholder jika masuk tahap FINAL
     if (tahapTarget === "Final") {
