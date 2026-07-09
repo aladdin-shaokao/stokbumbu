@@ -942,12 +942,21 @@ function kirimDataProduksi() {
     // =========================================================================
     // 1. TAMBAHAN LOGIKA DETEKSI CABANG (Berdasarkan Akun Login)
     // =========================================================================
-    let cabang = (typeof CABANG_LOGGED_IN !== 'undefined' && CABANG_LOGGED_IN) ? CABANG_LOGGED_IN : "Pusat";
+    // =========================================================================
+// PRIORITAS 1: Gunakan Cabang hasil verifikasi GPS fisik real-time
+// PRIORITAS 2: Jika GPS belum beres, gunakan Cabang dari akun Login petugas
+// PRIORITAS 3: Benteng terakhir jika kosong, gunakan "Pusat"
+let cabang = "Pusat";
+if (typeof CABANG_TERVERIFIKASI !== 'undefined' && CABANG_TERVERIFIKASI && CABANG_TERVERIFIKASI !== "") {
+    cabang = CABANG_TERVERIFIKASI;
+} else if (typeof CABANG_LOGGED_IN !== 'undefined' && CABANG_LOGGED_IN) {
+    cabang = CABANG_LOGGED_IN;
+}
 
-    if (statusTahapActive === "Before" && (!nama || !timbang)) {
-        Swal.fire('Error', 'Nama bahan dan timbangan wajib diisi!', 'error');
-        return;
-    }
+if (statusTahapActive === "Before" && (!nama || !timbang)) {
+    Swal.fire('Error', 'Nama bahan dan timbangan wajib diisi!', 'error');
+    return;
+}
 
     Swal.fire({ 
         title: 'Menyimpan...', 
@@ -960,15 +969,16 @@ function kirimDataProduksi() {
     // 2. MENYISIPKAN DATA CABANG KE DALAM PAYLOAD YANG DIKIRIM
     // =========================================================================
     let payload = {
-        action: "mulaiProduksi",
-        idProduksi: idProd,
-        statusTahap: statusTahapActive, 
-        namaBahan: nama,
-        timbangan: parseFloat(timbang),
-        fotoBase64: fotoBase64,
-        namaPetugas: petugas,
-        namaCabang: cabang // <-- Cabang otomatis ikut terkirim ke Google Sheets
-    };
+    action: "mulaiProduksi",
+    idProduction: idProd,
+    statusTahap: statusTahapActive, 
+    namaBahan: nama,
+    timbangan: parseFloat(timbang),
+    fotoBase64: fotoBase64,
+    namaPetugas: petugas,
+    namaCabang: cabang,
+    koordinat: (typeof KOORDINAT_TEREKAM !== 'undefined') ? KOORDINAT_TEREKAM : "" // <--- Kirim koordinat asli ke backend
+};
 
     // Menggunakan POST tanpa memicu preflight CORS OPTIONS lewat penulisan Header text/plain
     fetch(WEB_APP_URL, {
