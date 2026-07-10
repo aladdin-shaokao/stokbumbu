@@ -83,17 +83,20 @@
     </div>
   </div>
 
-  <!-- HALAMAN DASHBOARD PETUGAS OPERASIONAL -->
+ <!-- HALAMAN DASHBOARD PETUGAS OPERASIONAL -->
   <div id="halamanDashboard" style="display: none;">
-    <div class="header-dashboard text-center d-flex justify-content-between align-items-center px-4">
-      <div class="text-start">
-        <h4 class="fw-bold text-white mb-1">Halo, <span id="namaPetugasAktif">Petugas</span></h4>
-        <p class="small text-white-50 mb-0">Aladdin Shaokao Inventory System</p>
+    <div class="header-dashboard d-flex justify-content-between align-items-center px-3 py-3">
+      <!-- Penambahan flex-grow-1 dan pe-2 mencegah teks menabrak tombol Keluar -->
+      <div class="text-start flex-grow-1 pe-2">
+        <h4 class="fw-bold text-white mb-1" style="font-size: 20px;">Halo, <span id="namaPetugasAktif">Petugas</span></h4>
+        <p class="small text-white-50 mb-0" style="font-size: 11px; line-height: 1.2;">Aladdin Shaokao Inventory System</p>
       </div>
-      <!-- TOMBOL KELUAR PETUGAS -->
-      <button onclick="logoutSistem()" class="btn btn-sm btn-outline-light fw-bold px-3">
-        <i class="fas fa-sign-out-alt me-1"></i> Keluar
-      </button>
+      <!-- Tombol Keluar yang posisinya sudah dikunci aman di kanan -->
+      <div class="flex-shrink-0">
+        <button onclick="logoutSistem()" class="btn btn-sm btn-outline-light fw-bold px-3 py-1.5" style="font-size: 13px;">
+          <i class="fas fa-sign-out-alt me-1"></i> Keluar
+        </button>
+      </div>
     </div>
 
     <div class="container px-3 pb-5">
