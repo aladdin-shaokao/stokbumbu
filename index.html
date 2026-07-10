@@ -300,7 +300,7 @@
 <!-- CONTAINER KHUSUS UNTUK DISPLAY LOOKER STUDIO (FULL SCREEN HP TANPA MENUMPUK) -->
 <div id="manager-dashboard-container" style="display: none; width: 100%; height: 100vh; background-color: #0b0f17; position: fixed; top: 0; left: 0; z-index: 9999; overflow: hidden;">
     
-    <!-- 1. BAR ATAS: Tempat Tombol Kembali & Judul Menu (Biar tidak menumpuk lagi) -->
+    <!-- 1. BAR ATAS: Tempat Tombol Kembali & Judul Menu -->
     <div style="width: 100%; height: 55px; background-color: #111827; border-bottom: 2px solid #374151; display: flex; align-items: center; padding: 0 15px; box-sizing: border-box;">
         <button onclick="logoutSistem()" style="background-color: #dc2626; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: bold; font-size: 13px; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.4); cursor: pointer;">
             <i class="fas fa-arrow-left"></i> KEMBALI
@@ -324,6 +324,7 @@
 
     let NAMA_PETUGAS_LOGGED_IN = "";
     let CABANG_TERVERIFIKASI = "Belum Diketahui";
+    let CABANG_LOGGED_IN = "Pusat";
     let KOORDINAT_TEREKAM = "0,0";
     let DATA_BASE64_FOTO = "";
     let DATABASE_BARANG_LOCAL = {};
@@ -333,10 +334,75 @@
     let FILTER_CABANG_AKTIF = "ALL";
     let DATA_LOG_GLOBAL = [];
 
-    // --- 1. MEMUAT DAFTAR AKUN SAAT HALAMAN DIBUKA ---
+    // --- 1. MEMUAT DAFTAR AKUN SAAT HALAMAN DIBUKA & CEK AUTO REFRESH LOGIN ---
     document.addEventListener("DOMContentLoaded", function() {
       muatPilihanAkunDatalist();
+      periksaSesiLoginRefresh(); // Membaca localStorage HP saat di-refresh atau di-drag kebawah
     });
+
+    function periksaSesiLoginRefresh() {
+      let isLogged = localStorage.getItem("aladdin_is_logged_in");
+      let storedRole = localStorage.getItem("aladdin_role");
+
+      if (isLogged === "true") {
+        if (storedRole === "manager") {
+          document.getElementById('halamanLogin').style.display = 'none';
+          document.getElementById('manager-dashboard-container').style.display = 'block';
+        } 
+        else if (storedRole === "boss") {
+          NAMA_PETUGAS_LOGGED_IN = localStorage.getItem("aladdin_nama_lengkap") || "Owner";
+          document.getElementById('namaBossAktif').innerText = NAMA_PETUGAS_LOGGED_IN;
+          
+          let savedLaporan = localStorage.getItem("aladdin_cached_laporan");
+          let savedLogs = localStorage.getItem("aladdin_cached_logs");
+          MASTER_DATA_LAPORAN_BOSS = savedLaporan ? JSON.parse(savedLaporan) : [];
+          DATA_LOG_GLOBAL = savedLogs ? JSON.parse(savedLogs) : [];
+
+          document.getElementById('halamanLogin').style.display = 'none';
+          document.getElementById('halamanBoss').style.display = 'block';
+          filterLaporanBoss('ALL');
+        } 
+        else if (storedRole === "petugas") {
+          NAMA_PETUGAS_LOGGED_IN = localStorage.getItem("aladdin_nama_lengkap");
+          CABANG_LOGGED_IN = localStorage.getItem("aladdin_cabang_logged");
+          IS_ADMIN_OPNAME = localStorage.getItem("aladdin_is_admin_opname") === "true";
+          
+          let savedDbBarang = localStorage.getItem("aladdin_cached_db_barang");
+          DATABASE_BARANG_LOCAL = savedDbBarang ? JSON.parse(savedDbBarang) : {};
+
+          document.getElementById('namaPetugasAktif').innerText = NAMA_PETUGAS_LOGGED_IN;
+          document.getElementById('halamanLogin').style.display = 'none';
+          document.getElementById('halamanDashboard').style.display = 'block';
+
+          let actualRole = localStorage.getItem("aladdin_actual_job_role") || "";
+          
+          document.getElementById('menuSistem').style.display = 'none';
+          document.getElementById('areaProduksi').style.display = 'none';
+
+          if (actualRole.trim() === "Stok" || actualRole.trim() === "Admin") {
+              document.getElementById('menuSistem').style.display = 'block';
+          }
+          if (actualRole.trim() === "Produksi" || actualRole.trim() === "Admin") {
+              document.getElementById('areaProduksi').style.display = 'block';
+          }
+
+          const wrapperAwal = document.getElementById('wrapperStokAwal');
+          const wrapperFisik = document.getElementById('wrapperStokFisik');
+          if (IS_ADMIN_OPNAME) {
+            if(wrapperAwal) wrapperAwal.style.display = 'block';
+            if(wrapperFisik) wrapperFisik.style.display = 'block';
+          } else {
+            if(wrapperAwal) wrapperAwal.style.display = 'none';
+            if(wrapperFisik) wrapperFisik.style.display = 'none';
+          }
+
+          let savedCabangList = localStorage.getItem("aladdin_cached_cabang_list");
+          let parsedCabangList = savedCabangList ? JSON.parse(savedCabangList) : [];
+          prosesHitungGPSFisik(parsedCabangList);
+        }
+      }
+    }
+
     function muatPilihanAkunDatalist() {
       const databaseAkun = JSON.parse(localStorage.getItem("aladdin_multi_accounts")) || {};
       const datalist = document.getElementById("daftarAkunTersimpan");
@@ -381,14 +447,15 @@
         return;
       }
 
-      // ==================== SISIPKAN KODE BARU DI SINI ====================
       // KREDEBSIAL KHUSUS LOGIN MANAJEMEN/OWNER
       if (user.trim() === "produksi" && pass === "Dashboard123") {
+        localStorage.setItem("aladdin_is_logged_in", "true");
+        localStorage.setItem("aladdin_role", "manager");
+
         document.getElementById('halamanLogin').style.display = 'none';
         document.getElementById('manager-dashboard-container').style.display = 'block';
-        return; // 🛑 Cegah sistem melanjutkan pencarian ke server pusat
+        return; 
       }
-      // ====================================================================
 
       const userKey = user.trim().toLowerCase();
       let databaseAkun = JSON.parse(localStorage.getItem("aladdin_multi_accounts")) || {};
@@ -417,10 +484,21 @@
     }
 
     function logoutSistem() {
+      // Hapus Sesi Kunci Login Permanen dari HP
+      localStorage.removeItem("aladdin_is_logged_in");
+      localStorage.removeItem("aladdin_role");
+      localStorage.removeItem("aladdin_nama_lengkap");
+      localStorage.removeItem("aladdin_cabang_logged");
+      localStorage.removeItem("aladdin_is_admin_opname");
+      localStorage.removeItem("aladdin_actual_job_role");
+      localStorage.removeItem("aladdin_cached_db_barang");
+      localStorage.removeItem("aladdin_cached_cabang_list");
+      localStorage.removeItem("aladdin_cached_laporan");
+      localStorage.removeItem("aladdin_cached_logs");
+
       document.getElementById('halamanBoss').style.display = 'none';
       document.getElementById('halamanDashboard').style.display = 'none';
       
-      // Tambahan baris pengaman untuk menutup dashboard Looker Studio
       if(document.getElementById('manager-dashboard-container')) {
          document.getElementById('manager-dashboard-container').style.display = 'none';
       }
@@ -441,12 +519,19 @@ function responLoginPusat(res) {
       MASTER_DATA_LAPORAN_BOSS = res.laporanStok || [];
       DATA_LOG_GLOBAL = res.riwayatLog || res.historiLog || [];
       
+      // Simpan Sesi Boss
+      localStorage.setItem("aladdin_is_logged_in", "true");
+      localStorage.setItem("aladdin_role", "boss");
+      localStorage.setItem("aladdin_nama_lengkap", res.namaLengkap || "Owner");
+      localStorage.setItem("aladdin_cached_laporan", JSON.stringify(MASTER_DATA_LAPORAN_BOSS));
+      localStorage.setItem("aladdin_cached_logs", JSON.stringify(DATA_LOG_GLOBAL));
+
       document.getElementById('namaBossAktif').innerText = res.namaLengkap || "Owner";
       document.getElementById('halamanLogin').style.display = 'none';
       document.getElementById('halamanBoss').style.display = 'block';
       
       filterLaporanBoss('ALL'); 
-      return; // 🛑 Berhenti di sini, abaikan kode GPS petugas di bawah
+      return; 
     }
 
     // 2. JIKA PETUGAS OPERASIONAL (STOK / PRODUKSI / ADMIN)
@@ -455,14 +540,24 @@ function responLoginPusat(res) {
       return;
     }
 
-    document.getElementById('halamanLogin').style.display = 'none';
-    document.getElementById('halamanDashboard').style.display = 'block';
-
     NAMA_PETUGAS_LOGGED_IN = res.data.Nama_Lengkap;
     let role = res.data.Role; 
-    
-    document.getElementById('namaPetugasAktif').innerText = NAMA_PETUGAS_LOGGED_IN;
+    CABANG_LOGGED_IN = res.data.Cabang || "Pusat";
     DATABASE_BARANG_LOCAL = res.databaseBarang || {};
+
+    // Simpan Sesi Petugas ke LocalStorage
+    localStorage.setItem("aladdin_is_logged_in", "true");
+    localStorage.setItem("aladdin_role", "petugas");
+    localStorage.setItem("aladdin_nama_lengkap", NAMA_PETUGAS_LOGGED_IN);
+    localStorage.setItem("aladdin_cabang_logged", CABANG_LOGGED_IN);
+    localStorage.setItem("aladdin_is_admin_opname", IS_ADMIN_OPNAME ? "true" : "false");
+    localStorage.setItem("aladdin_actual_job_role", role || "");
+    localStorage.setItem("aladdin_cached_db_barang", JSON.stringify(DATABASE_BARANG_LOCAL));
+    localStorage.setItem("aladdin_cached_cabang_list", JSON.stringify(res.cabangList || []));
+
+    document.getElementById('halamanLogin').style.display = 'none';
+    document.getElementById('halamanDashboard').style.display = 'block';
+    document.getElementById('namaPetugasAktif').innerText = NAMA_PETUGAS_LOGGED_IN;
 
     // Reset Menu Akses
     document.getElementById('menuSistem').style.display = 'none';
@@ -479,7 +574,7 @@ function responLoginPusat(res) {
     // Cek Mode Opname Mingguan
     const wrapperAwal = document.getElementById('wrapperStokAwal');
     const wrapperFisik = document.getElementById('wrapperStokFisik');
-    if (typeof IS_ADMIN_OPNAME !== 'undefined' && IS_ADMIN_OPNAME) {
+    if (IS_ADMIN_OPNAME) {
       if(wrapperAwal) wrapperAwal.style.display = 'block';
       if(wrapperFisik) wrapperFisik.style.display = 'block';
     } else {
@@ -495,7 +590,7 @@ function responLoginPusat(res) {
   }
 }
 
-// KODE TOMBOL FORM PRODUKSI (SUDAH DIKELUARKAN SECARA AMAN)
+// KODE TOMBOL FORM PRODUKSI
 function bukaFormProduksi() {
     document.getElementById('formInputProduksi').classList.remove('d-none');
 }
@@ -691,8 +786,8 @@ function tutupFormProduksi() {
       box.className = "p-3 rounded text-center fw-bold small bg-success text-white"; 
       box.innerHTML = `<i class="fas fa-check-circle me-2"></i> ${pesan}`; 
       
-      // PERBAIKAN: Hanya tampilkan menu sistem jika role-nya Stok/Admin
-      if (ROLE_USER_AKTIF === 'Stok' || ROLE_USER_AKTIF === 'Admin') {
+      let actualRole = localStorage.getItem("aladdin_actual_job_role") || "";
+      if (actualRole.trim() === 'Stok' || actualRole.trim() === 'Admin') {
         document.getElementById('menuSistem').style.display = 'block';
       }
     } 
@@ -704,7 +799,6 @@ function tutupFormProduksi() {
         <span><i class="fas fa-exclamation-triangle me-2"></i> GPS Lemah (Gagal Kunci Lokasi)</span> 
         <button type="button" onclick="bypassGPSSerpong()" class="btn btn-sm btn-dark fw-bold px-2 py-1">Set Serpong</button> 
       `; 
-      // PERBAIKAN: Sembunyikan menu sistem jika gagal (kecuali Anda ingin dia tetap muncul)
       document.getElementById('menuSistem').style.display = 'none';
     } 
 
@@ -861,8 +955,9 @@ function tutupFormProduksi() {
         matikanKameraLive(); 
       }); 
     } 
+
 // =============================================================================
-// --- KODE UNTUK FORM PRODUKSI (DITARUH DI PALING BAWAH AGAR TIDAK TERTUMPUK) ---
+// --- KODE UNTUK FORM PRODUKSI ---
 // =============================================================================
 function bukaFormProduksi() {
     document.getElementById('formInputProduksi').classList.remove('d-none');
@@ -925,7 +1020,6 @@ function kirimDataProduksi() {
     let nama = document.getElementById('inputNamaBahan') ? document.getElementById('inputNamaBahan').value : "";
     let timbang = document.getElementById('inputTimbangan') ? document.getElementById('inputTimbangan').value : "";
     
-    // KUNCI AMAN: Ambil ID dan Status Tahapan secara real-time dari form yang aktif
     let idProd = document.getElementById('inputIDProduksi') ? document.getElementById('inputIDProduksi').value : "";
     let statusTahapActive = document.getElementById('inputStatusTahap') ? document.getElementById('inputStatusTahap').value : "Before";
 
@@ -939,9 +1033,6 @@ function kirimDataProduksi() {
 
     let petugas = (typeof NAMA_PETUGAS_LOGGED_IN !== 'undefined' && NAMA_PETUGAS_LOGGED_IN) ? NAMA_PETUGAS_LOGGED_IN : "Petugas Produksi";
     
-    // =========================================================================
-    // PENENTUAN CABANG YANG VALID & AMAN
-    // =========================================================================
     let cabang = "Pusat";
     if (typeof CABANG_TERVERIFIKASI !== 'undefined' && CABANG_TERVERIFIKASI && CABANG_TERVERIFIKASI !== "") {
         cabang = CABANG_TERVERIFIKASI;
@@ -949,13 +1040,11 @@ function kirimDataProduksi() {
         cabang = CABANG_LOGGED_IN;
     }
 
-    // Validasi pengisian data khusus untuk pendaftaran awal (Before)
     if (statusTahapActive === "Before" && (!nama || !timbang)) {
         Swal.fire('Error', 'Nama bahan dan timbangan wajib diisi!', 'error');
         return;
     }
     
-    // Validasi angka timbangan untuk kelanjutan proses (Wastage/After/Final)
     if (statusTahapActive !== "Before" && !timbang) {
         Swal.fire('Error', 'Angka timbangan atau Jumlah Tusuk wajib diisi untuk tahap ' + statusTahapActive + '!', 'error');
         return;
@@ -970,7 +1059,6 @@ function kirimDataProduksi() {
 
     let koordinatKirim = (typeof KOORDINAT_TEREKAM !== 'undefined') ? KOORDINAT_TEREKAM : "";
 
-    // PAYLOAD DATA YANG AKAN DIKIRIM KE BACKEND CODE.GS
     let payload = {
         action: "mulaiProduksi",
         idProduksi: idProd,
@@ -983,7 +1071,6 @@ function kirimDataProduksi() {
         koordinat: koordinatKirim
     };
 
-    // Proses kirim menggunakan Fetch API POST ke Web App URL
     fetch(WEB_APP_URL, {
         method: "POST",
         headers: { "Content-Type": "text/plain" },
@@ -999,20 +1086,17 @@ function kirimDataProduksi() {
                 text: 'Data ' + statusTahapActive + ' sukses diproses. ID: ' + res.idProduksi,
                 confirmButtonColor: '#3085d6'
             }).then(() => {
-                // Reset input manual timbangan setelah berhasil
                 document.getElementById('inputTimbangan').value = '';
                 
-                // Jika baru selesai tahap Before, kosongkan form nama bahan agar siap untuk menu berikutnya
                 if(document.getElementById('inputNamaBahan') && statusTahapActive === "Before") {
                     document.getElementById('inputNamaBahan').value = '';
                 }
                 
-                // Tutup form input produksi dan refresh antrian secara otomatis
                 if (typeof tutupFormProduksi === "function") {
                     tutupFormProduksi();
                 }
                 if (typeof ambilAntrianMulai === "function") {
-                    ambilAntrianMulai(); // Memaksa refresh daftar antrian di layar agar statusnya langsung berubah
+                    ambilAntrianMulai(); 
                 }
             });
         } else {
@@ -1026,10 +1110,8 @@ function kirimDataProduksi() {
 }
     
 // =========================================================================
-// KODE TERBARU UNTUK MENGGANTIKAN KODE ANTRIAN LAMA (SUDAH AUTO POP-UP)
+// KODE TERBARU UNTUK LIST ANTRIAN
 // =========================================================================
-
-// 1. Fungsi pemicu saat tombol "LIHAT ANTRIAN" diklik petugas
 function tampilkanAntrian() {
     Swal.fire({
         title: 'Memuat Antrian...',
@@ -1043,7 +1125,6 @@ function tampilkanAntrian() {
     scriptAntrian.id = idScriptUnik;
     scriptAntrian.src = WEB_APP_URL + "?action=ambilAntrian&callback=responAmbilAntrian";
     
-    // Proteksi timeout jika jaringan di HP lambat (10 detik)
     const timeoutAntrian = setTimeout(() => {
         Swal.close();
         Swal.fire('Koneksi Lambat', 'Gagal memuat antrian, silakan coba klik lagi.', 'warning');
@@ -1055,9 +1136,6 @@ function tampilkanAntrian() {
     document.body.appendChild(scriptAntrian);
 }
 
-// =========================================================================
-// 1. FUNGSI PENANGKAP DATA ANTRIAN (DENGAN PEMANGGILAN GLOBAL WINDOW)
-// =========================================================================
 function responAmbilAntrian(res) {
     if (window.currentAntrianTimeout) { clearTimeout(window.currentAntrianTimeout); }
     Swal.close(); 
@@ -1103,7 +1181,6 @@ function responAmbilAntrian(res) {
                 warnaBadge = "bg-danger text-white";
             }
 
-            // KUNCI PERBAIKAN: Menggunakan window.lanjutkanProsesProduksi agar terbaca oleh SweetAlert
             tabelHTML += `
                 <tr>
                     <td class="text-center" style="padding: 7px 4px; white-space: nowrap; font-family: monospace; font-weight: bold; font-size:11px;">
@@ -1146,50 +1223,37 @@ function responAmbilAntrian(res) {
     }
 }
 
-// =========================================================================
-// 2. FUNGSI EKSEKUSI UTAMA (DIKUNCI KE OBJECT WINDOW GLOBAL AGAR PASTI JALAN)
-// =========================================================================
 window.lanjutkanProsesProduksi = function(idProd, namaBahan, tahapTarget) {
-    // 1. Tutup pop-up antrian
     Swal.close();
     
-    // 2. Ambil elemen-elemen input form
     let inputID = document.getElementById('inputIDProduksi') || document.getElementById('idProduksi');
     let inputBahan = document.getElementById('inputNamaBahan') || document.getElementById('namaBahan');
     let inputTahap = document.getElementById('inputStatusTahap') || document.getElementById('statusTahap');
     
-    // Ambil elemen input timbangan dan labelnya
     let inputTimbangan = document.getElementById('inputTimbangan') || document.getElementById('timbangan') || document.querySelector('input[type="number"]');
     let labelTimbangan = document.getElementById('labelTimbangan') || (inputTimbangan ? inputTimbangan.previousElementSibling : null);
 
-    // 3. Masukkan data antrian terpilih ke form
-   if (inputID) inputID.value = idProd;
+    if (inputID) inputID.value = idProd;
     if (inputBahan) {
         inputBahan.value = namaBahan;
         inputBahan.readOnly = true; 
     }
     if (inputTahap) inputTahap.value = tahapTarget;
 
-    // =========================================================================
-    // TAMBAHAN PENTING: Buka paksa container form agar muncul di layar HP
-    // =========================================================================
     let containerForm = document.getElementById('formInputProduksi');
     if (containerForm) {
-        containerForm.classList.remove('d-none'); // Menghilangkan d-none agar form terlihat
-        containerForm.scrollIntoView({ behavior: 'smooth' }); // Scroll otomatis ke area form input
+        containerForm.classList.remove('d-none'); 
+        containerForm.scrollIntoView({ behavior: 'smooth' }); 
     }
 
-    // 4. KUNCI UTAMA: Ubah teks label & placeholder jika masuk tahap FINAL
     if (tahapTarget === "Final") {
         if (labelTimbangan) labelTimbangan.innerHTML = 'Jumlah Tusuk:';
         if (inputTimbangan) inputTimbangan.placeholder = 'Contoh: 150';
     } else {
-        // Kembalikan ke default jika tahapnya Wastage atau After
         if (labelTimbangan) labelTimbangan.innerHTML = 'Timbangan (gram):';
         if (inputTimbangan) inputTimbangan.placeholder = 'Contoh: 500';
     }
 
-    // 5. Buka container form input produksi
     if (typeof bukaFormProduksi === "function") {
         bukaFormProduksi();
     } else {
@@ -1197,7 +1261,6 @@ window.lanjutkanProsesProduksi = function(idProd, namaBahan, tahapTarget) {
         if (boxForm) boxForm.classList.remove('d-none');
     }
 
-    // 6. Geser layar HP petugas ke arah form
     let targetScroll = document.getElementById('formInputProduksi') || document.getElementById('areaProduksi');
     if (targetScroll) {
         setTimeout(() => {
@@ -1205,7 +1268,6 @@ window.lanjutkanProsesProduksi = function(idProd, namaBahan, tahapTarget) {
         }, 150);
     }
 
-    // 7. Notifikasi sukses perpindahan tahap
     Swal.fire({
         icon: 'success',
         title: 'Form Kelanjutan Aktif',
@@ -1214,14 +1276,12 @@ window.lanjutkanProsesProduksi = function(idProd, namaBahan, tahapTarget) {
         timer: 3000
     });
 };
-// Taruh kode ini di bagian paling bawah script JavaScript Anda
+
 document.addEventListener("DOMContentLoaded", function() {
-    // Cari tombol hijau berdasarkan teksnya "INPUT PRODUKSI"
     let tombols = document.querySelectorAll("button, div, a");
     tombols.forEach(btn => {
         if (btn.innerText && btn.innerText.includes("INPUT PRODUKSI")) {
             btn.addEventListener("click", function() {
-                // Paksa reset label dan placeholder ke default semula
                 let labelTimbangan = document.getElementById('labelTimbangan');
                 let inputTimbangan = document.getElementById('inputTimbangan');
                 
@@ -1231,16 +1291,13 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 });
-// =========================================================================
-// PENGAMAN MUTLAK: MENGUNCI LABEL AGAR TIDAK BERUBAH SAAT DIKLIK/DIFOKUS
-// =========================================================================
+
 document.addEventListener("DOMContentLoaded", function() {
     let inputTimbangan = document.getElementById('inputTimbangan');
     let inputStatusTahap = document.getElementById('inputStatusTahap');
     let labelTimbangan = document.getElementById('labelTimbangan');
 
     if (inputTimbangan) {
-        // Fungsi untuk memaksa label sesuai dengan tahapannya
         let kunciLabelOtomatis = function() {
             if (inputStatusTahap && labelTimbangan) {
                 if (inputStatusTahap.value === "Final") {
@@ -1253,10 +1310,9 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         };
 
-        // Pasang pengaman di segala jenis interaksi jari petugas pada kolom input
-        inputTimbangan.addEventListener('focus', kunciLabelOtomatis); // Saat kolom diklik/aktif
-        inputTimbangan.addEventListener('click', kunciLabelOtomatis); // Saat kolom disentuh
-        inputTimbangan.addEventListener('input', kunciLabelOtomatis); // Saat petugas mulai mengetik angka
+        inputTimbangan.addEventListener('focus', kunciLabelOtomatis); 
+        inputTimbangan.addEventListener('click', kunciLabelOtomatis); 
+        inputTimbangan.addEventListener('input', kunciLabelOtomatis); 
     }
 });
     
