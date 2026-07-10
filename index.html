@@ -923,9 +923,9 @@ function ambilFotoProduksi() {
 
 function kirimDataProduksi() {
     let nama = document.getElementById('inputNamaBahan') ? document.getElementById('inputNamaBahan').value : "";
-    let timbang = document.getElementById('inputTimbangan').value;
+    let timbang = document.getElementById('inputTimbangan') ? document.getElementById('inputTimbangan').value : "";
     
-    // Sediakan elemen input tersembunyi (hidden input) di HTML Anda untuk menampung ID produksi yang sedang berjalan (jika ada)
+    // KUNCI AMAN: Ambil ID dan Status Tahapan secara real-time dari form yang aktif
     let idProd = document.getElementById('inputIDProduksi') ? document.getElementById('inputIDProduksi').value : "";
     let statusTahapActive = document.getElementById('inputStatusTahap') ? document.getElementById('inputStatusTahap').value : "Before";
 
@@ -940,47 +940,50 @@ function kirimDataProduksi() {
     let petugas = (typeof NAMA_PETUGAS_LOGGED_IN !== 'undefined' && NAMA_PETUGAS_LOGGED_IN) ? NAMA_PETUGAS_LOGGED_IN : "Petugas Produksi";
     
     // =========================================================================
-    // 1. TAMBAHAN LOGIKA DETEKSI CABANG (Berdasarkan Akun Login)
+    // PENENTUAN CABANG YANG VALID & AMAN
     // =========================================================================
-    // =========================================================================
-// PRIORITAS 1: Gunakan Cabang hasil verifikasi GPS fisik real-time
-// PRIORITAS 2: Jika GPS belum beres, gunakan Cabang dari akun Login petugas
-// PRIORITAS 3: Benteng terakhir jika kosong, gunakan "Pusat"
-let cabang = "Pusat";
-if (typeof CABANG_TERVERIFIKASI !== 'undefined' && CABANG_TERVERIFIKASI && CABANG_TERVERIFIKASI !== "") {
-    cabang = CABANG_TERVERIFIKASI;
-} else if (typeof CABANG_LOGGED_IN !== 'undefined' && CABANG_LOGGED_IN) {
-    cabang = CABANG_LOGGED_IN;
-}
+    let cabang = "Pusat";
+    if (typeof CABANG_TERVERIFIKASI !== 'undefined' && CABANG_TERVERIFIKASI && CABANG_TERVERIFIKASI !== "") {
+        cabang = CABANG_TERVERIFIKASI;
+    } else if (typeof CABANG_LOGGED_IN !== 'undefined' && CABANG_LOGGED_IN) {
+        cabang = CABANG_LOGGED_IN;
+    }
 
-if (statusTahapActive === "Before" && (!nama || !timbang)) {
-    Swal.fire('Error', 'Nama bahan dan timbangan wajib diisi!', 'error');
-    return;
-}
+    // Validasi pengisian data khusus untuk pendaftaran awal (Before)
+    if (statusTahapActive === "Before" && (!nama || !timbang)) {
+        Swal.fire('Error', 'Nama bahan dan timbangan wajib diisi!', 'error');
+        return;
+    }
+    
+    // Validasi angka timbangan untuk kelanjutan proses (Wastage/After/Final)
+    if (statusTahapActive !== "Before" && !timbang) {
+        Swal.fire('Error', 'Angka timbangan atau Jumlah Tusuk wajib diisi untuk tahap ' + statusTahapActive + '!', 'error');
+        return;
+    }
 
     Swal.fire({ 
         title: 'Menyimpan...', 
-        text: 'Sedang memproses data & foto ke Google Sheets...',
+        text: 'Sedang memproses data ' + statusTahapActive + ' ke Google Sheets...',
         allowOutsideClick: false, 
         didOpen: () => { Swal.showLoading(); } 
     });
 
-    // =========================================================================
-    // 2. MENYISIPKAN DATA CABANG KE DALAM PAYLOAD YANG DIKIRIM
-    // =========================================================================
-    let payload = {
-    action: "mulaiProduksi",
-    idProduction: idProd,
-    statusTahap: statusTahapActive, 
-    namaBahan: nama,
-    timbangan: parseFloat(timbang),
-    fotoBase64: fotoBase64,
-    namaPetugas: petugas,
-    namaCabang: cabang,
-    koordinat: (typeof KOORDINAT_TEREKAM !== 'undefined') ? KOORDINAT_TEREKAM : "" // <--- Kirim koordinat asli ke backend
-};
+    let koordinatKirim = (typeof KOORDINAT_TEREKAM !== 'undefined') ? KOORDINAT_TEREKAM : "";
 
-    // Menggunakan POST tanpa memicu preflight CORS OPTIONS lewat penulisan Header text/plain
+    // PAYLOAD DATA YANG AKAN DIKIRIM KE BACKEND CODE.GS
+    let payload = {
+        action: "mulaiProduksi",
+        idProduksi: idProd,
+        statusTahap: statusTahapActive, 
+        namaBahan: nama,
+        timbangan: parseFloat(timbang),
+        fotoBase64: fotoBase64,
+        namaPetugas: petugas,
+        namaCabang: cabang,
+        koordinat: koordinatKirim
+    };
+
+    // Proses kirim menggunakan Fetch API POST ke Web App URL
     fetch(WEB_APP_URL, {
         method: "POST",
         headers: { "Content-Type": "text/plain" },
@@ -996,19 +999,20 @@ if (statusTahapActive === "Before" && (!nama || !timbang)) {
                 text: 'Data ' + statusTahapActive + ' sukses diproses. ID: ' + res.idProduksi,
                 confirmButtonColor: '#3085d6'
             }).then(() => {
-                // Simpan ID produksi baru ke form jika ini baru tahap 'Before' agar tahap berikutnya otomatis memperbarui baris ini
-                if (document.getElementById('inputIDProduksi')) {
-                    document.getElementById('inputIDProduksi').value = res.idProduksi;
-                }
-                
-                // Reset input manual timbangan
+                // Reset input manual timbangan setelah berhasil
                 document.getElementById('inputTimbangan').value = '';
+                
+                // Jika baru selesai tahap Before, kosongkan form nama bahan agar siap untuk menu berikutnya
                 if(document.getElementById('inputNamaBahan') && statusTahapActive === "Before") {
                     document.getElementById('inputNamaBahan').value = '';
                 }
                 
+                // Tutup form input produksi dan refresh antrian secara otomatis
                 if (typeof tutupFormProduksi === "function") {
                     tutupFormProduksi();
+                }
+                if (typeof ambilAntrianMulai === "function") {
+                    ambilAntrianMulai(); // Memaksa refresh daftar antrian di layar agar statusnya langsung berubah
                 }
             });
         } else {
@@ -1020,6 +1024,7 @@ if (statusTahapActive === "Before" && (!nama || !timbang)) {
         Swal.fire('Gagal Kirim', 'Terjadi kendala jaringan: ' + err.toString(), 'error');
     });
 }
+    
 // =========================================================================
 // KODE TERBARU UNTUK MENGGANTIKAN KODE ANTRIAN LAMA (SUDAH AUTO POP-UP)
 // =========================================================================
