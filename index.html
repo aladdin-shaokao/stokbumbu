@@ -611,35 +611,40 @@
 function bukaDetailFotoBoss(namaBumbu, fotoLink, kodeBarcode, namaCabang) { 
   let historiLog = []; 
 
-  // Helper untuk menstandarkan format nama cabang menjadi 'SERPONG' atau 'PIK 1'
-  const bersihkanCabang = (str) => {
-    if (!str) return '';
-    let c = String(str).toUpperCase().trim();
-    if (c.includes('SERPONG')) return 'SERPONG';
-    if (c.includes('PIK')) return 'PIK 1';
-    return c;
-  };
-
-  const targetCabangClean = bersihkanCabang(namaCabang);
-  const targetBarcodeClean = String(kodeBarcode || '').trim().toLowerCase();
+  // Normalisasi filter target (bersihkan spasi & huruf kecil)
+  const targetBarcode = String(kodeBarcode || '').trim().toLowerCase();
+  const targetCabang = String(namaCabang || '').trim().toUpperCase();
 
   if (typeof DATA_LOG_GLOBAL !== 'undefined' && Array.isArray(DATA_LOG_GLOBAL)) { 
     historiLog = DATA_LOG_GLOBAL.filter(log => {
-      // 1. Ambil & bersihkan kode barcode dari log
-      const logBarcode = String(log.Kode_Barcode || log.kode_barcode || log.Barcode || log.barcode || '').trim().toLowerCase();
+      // 1. Ambil Barcode (Sesuai header Sheet: Kode_Barcode)
+      const logBarcode = String(
+        log.Kode_Barcode || log['Kode_Barcode'] || log.kode_barcode || log.Barcode || log.barcode || ''
+      ).trim().toLowerCase();
       
-      // 2. Ambil & bersihkan cabang dari log
-      const logCabangRaw = log.Cabang || log.cabang || log['Nama Cabang'] || log.nama_cabang || '';
-      const logCabangClean = bersihkanCabang(logCabangRaw);
+      // 2. Ambil Cabang (Sesuai header Sheet: Nama Cabang)
+      const logCabangRaw = String(
+        log['Nama Cabang'] || log.Nama_Cabang || log.Cabang || log.cabang || ''
+      ).trim().toUpperCase();
 
-      // 3. Cocokkan BARCODE dan CABANG secara presisi
-      const matchBarcode = (logBarcode === targetBarcodeClean);
-      const matchCabang = (logCabangClean === targetCabangClean);
+      // Cek kecocokan Barcode
+      const matchBarcode = (logBarcode === targetBarcode);
+
+      // Cek kecocokan Cabang secara presisi & tahan variasi string
+      let matchCabang = false;
+      if (targetCabang.includes('SERPONG')) {
+        matchCabang = logCabangRaw.includes('SERPONG');
+      } else if (targetCabang.includes('PIK')) {
+        matchCabang = logCabangRaw.includes('PIK');
+      } else {
+        matchCabang = (logCabangRaw === targetCabang);
+      }
 
       return matchBarcode && matchCabang;
     }); 
   } 
 
+  // Urutkan riwayat dari yang paling baru
   historiLog.sort((a, b) => new Date(b.Timestamp || b.timestamp) - new Date(a.Timestamp || a.timestamp)); 
   
   let tabelHTML = `
@@ -666,8 +671,8 @@ function bukaDetailFotoBoss(namaBumbu, fotoLink, kodeBarcode, namaCabang) {
         } catch(e) { tanggal = tglRaw; } 
       } 
       
-      let petugas = log['Nama Petugas'] || log.nama_petugas || log.Petugas || "Petugas"; 
-      let jenis = log['Jenis Stok'] || log.jenis_stok || log.Aktivitas || "LOG"; 
+      let petugas = log['Nama Petugas'] || log.Nama_Petugas || log.nama_petugas || "Petugas"; 
+      let jenis = log['Jenis Stok'] || log.Jenis_Stok || log.jenis_stok || "LOG"; 
       let jumlah = log.Jumlah !== undefined ? log.Jumlah : (log.jumlah !== undefined ? log.jumlah : 0); 
 
       let warnaAktivitas = "text-white"; 
